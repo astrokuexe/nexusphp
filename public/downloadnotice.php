@@ -67,7 +67,7 @@ else
 			$note = $lang_downloadnotice['text_first_time_download_note'];
 			$noticenexttime = $lang_downloadnotice['text_notice_not_show_again'];
 			$showrationotice = true;
-			$showclientnotice = true;
+			$showclientnotice = false;
 			$forcecheck = false;
 		}
 	}
