@@ -18,7 +18,7 @@ class FaqTableSeeder extends Seeder
 
         \DB::table('faq')->delete();
 
-        \DB::table('faq')->insert(array (
+        $faq = array (
             0 =>
             array (
                 'id' => 1,
@@ -134,7 +134,7 @@ class FaqTableSeeder extends Seeder
                 'lang_id' => 25,
                 'type' => 'item',
                 'question' => '到底什么是BT（Bittorrent）？我要如何才能弄到这类程序？',
-                'answer' => '参看<a class="faqlink" href="http://www.btfaq.com/">Brian的BitTorrent FAQ及指导</a>。',
+                'answer' => '参看<a class="faqlink" href="https://www.zdnet.com/article/what-is-torrenting-and-how-does-it-work/">Brian的BitTorrent FAQ及指导</a>。',
                 'flag' => 1,
                 'categ' => 1,
                 'order' => 1,
@@ -158,8 +158,8 @@ class FaqTableSeeder extends Seeder
                 'lang_id' => 25,
                 'type' => 'item',
                 'question' => '我从哪里可以搞到源代码的拷贝？',
-                'answer' => '这个Tracker使用的是NexusPHP的代码。代码获取事宜，请看<a class="faqlink" href="aboutnexus.php">这里</a>。<br />
-NexusPHP的代码是根据TBSource的源码改写的。TBDev网站，Tracker源代码以及社区论坛都在这里：<a class="faqlink" href="http://www.tbdev.net/">TBDev.net</a>。',
+                'answer' => '这个Tracker使用的是NexusPHP的代码。代码获取事宜，请看这里。<br />
+NexusPHP的代码是根据TBSource的源码改写的。TBDev网站，Tracker源代码以及社区论坛都在这里：<a class="faqlink" href="https://github.com/xiaomlove/nexusphp">NexusPHP on GitHub</a>。',
                 'flag' => 1,
                 'categ' => 1,
                 'order' => 3,
@@ -259,7 +259,7 @@ NexusPHP的代码是根据TBSource的源码改写的。TBDev网站，Tracker源�
 这意味着其它的大批Peer无法连接到你，只能由你连接到他们。更糟糕的情况是，如果两个Peer都处于这样的状态，他们将完全无法连接到对方。这对于整体速度有着非常不利的影响。
 <br />
 <br />
-对于这个问题，有以下解决方式：对于防火墙，打开用于接收连接的端口（即你在BT客户端中定义的端口）；对于NAT，你需要配置NAT服务器使用Basic NAT方式而不是NAPT（不同的路由有着不同的运行方式。翻阅你的路由文档或客服论坛。你也可以在<a class="faqlink" href="http://portforward.com/">PortForward</a>找到关于此问题的大量信息）。
+对于这个问题，有以下解决方式：对于防火墙，打开用于接收连接的端口（即你在BT客户端中定义的端口）；对于NAT，你需要配置NAT服务器使用Basic NAT方式而不是NAPT（不同的路由有着不同的运行方式。翻阅你的路由文档或客服论坛。你也可以在<a class="faqlink" href="https://portforward.com/">PortForward</a>找到关于此问题的大量信息）。
 
 
 
@@ -550,26 +550,26 @@ NexusPHP的代码是根据TBSource的源码改写的。TBDev网站，Tracker源�
                 'lang_id' => 25,
                 'type' => 'item',
                 'question' => '我可以任意选择Bittorrent客户端软件么？',
-                'answer' => '根据<a class="faqlink" href="aboutnexus.php">NexusPHP</a>对常见BitTorrent客户端的测试，目前本站Tracker<b>只允许</b>使用以下的BitTorrent客户端软件。<br />
-<a class="faqlink" href="aboutnexus.php">NexusPHP</a>的测试报告可<a class="faqlink" href="https://nexusphp.org/wiki/%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A">在此查看</a>。
+                'answer' => '根据NexusPHP对常见BitTorrent客户端的测试，目前本站Tracker<b>只允许</b>使用以下的BitTorrent客户端软件。<br />
+NexusPHP的测试报告可<a class="faqlink" href="https://nexusphp.org/wiki/%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A">在此查看</a>。
 <br />
 <b>Windows:</b>
 <ul>
-<li><a class="faqlink" href="http://www.utorrent.com">uTorrent</a>: 仅版本 2.2.1</li>
+<li><a class="faqlink" href="https://www.utorrent.com/desktop/">uTorrent</a>: 仅版本 2.2.1</li>
 <li><a class="faqlink" href="https://www.bitcomet.com">BitComet</a>: 2.21及后续版本</li>
 <li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: 4.4.5及后续版本</li>
-<li><a class="faqlink" href="http://deluge-torrent.org">Deluge</a>: 0.5.9.1, 1.1.6及后续版本</li>
+<li><a class="faqlink" href="https://deluge-torrent.org/download/">Deluge</a>: 0.5.9.1, 1.1.6及后续版本</li>
 </ul>
 <b>Linux:</b>
 <ul>
-<li><a class="faqlink" href="http://deluge-torrent.org">Deluge</a>: 0.5.9.1, 1.1.6及后续版本</li>
-<li><a class="faqlink" href="http://www.transmissionbt.com">Transmission</a>: 1.21及后续版本</li>
+<li><a class="faqlink" href="https://deluge-torrent.org/download/">Deluge</a>: 0.5.9.1, 1.1.6及后续版本</li>
+<li><a class="faqlink" href="https://transmissionbt.com/download/">Transmission</a>: 1.21及后续版本</li>
 <li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: 4.4.5及后续版本</li>
-<li><a class="faqlink" href="http://libtorrent.rakshasa.no">rTorrent</a>: 0.8.0（配合libtorrent 0.12.0或后续版本）及后续版本</li>
+<li><a class="faqlink" href="https://github.com/rakshasa/rtorrent">rTorrent</a>: 0.8.0（配合libtorrent 0.12.0或后续版本）及后续版本</li>
 </ul>
 <b>MacOS X:</b>
 <ul>
-<li><a class="faqlink" href="http://www.transmissionbt.com">Transmission</a>: 1.21及后续版本</li>
+<li><a class="faqlink" href="https://transmissionbt.com/download/">Transmission</a>: 1.21及后续版本</li>
 <li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: 4.4.5及后续版本</li>
 </ul>
 <br />
@@ -853,7 +853,7 @@ NexusPHP的代码是根据TBSource的源码改写的。TBDev网站，Tracker源�
 </tr>
 </table>
 <br />
-要使用我们的Tracker服务器，你必须配置你的客户端使用未在上面列出的端口范围(从49152到65535都是不错的选择，参看<a class="faqlink" href="http://www.iana.org/assignments/port-numbers">IANA</a>)。注意某些客户端，对所有的种子都使用同一端口。而其他大多数客户端为每一个种子开放一个端口，你在选择端口范围应考虑到这个问题（一般来说端口范围小于10。设置一个过大的范围并不一定有好处，而且可能有安全隐患)。 <br />
+要使用我们的Tracker服务器，你必须配置你的客户端使用未在上面列出的端口范围(从49152到65535都是不错的选择，参看<a class="faqlink" href="https://www.iana.org/assignments/service-names-port-numbers/">IANA</a>)。注意某些客户端，对所有的种子都使用同一端口。而其他大多数客户端为每一个种子开放一个端口，你在选择端口范围应考虑到这个问题（一般来说端口范围小于10。设置一个过大的范围并不一定有好处，而且可能有安全隐患)。 <br />
 <br />
 这些端口是用于同伴间通信的，而非用于客户端连接到Tracker服务器。因此这个改动并不会影响你使用其他Tracker服务器（事实上，它甚至可能<i>加快</i>所有Tracker服务器上种子的速度）。你的客户端也仍然能够连接到那些使用默认端口的同伴。如果你的客户端不支持自己自定义端口，那么换一个吧。<br />
 <br />
@@ -1015,7 +1015,7 @@ IO错误指的是输入-输出错误，这是一个文件系统错误，而非�
         'lang_id' => 25,
         'type' => 'item',
         'question' => '我该怎样发现自己正处于一个（透明的/匿名的）代理后面？',
-        'answer' => '试试看<a href="http://proxyjudge.org" class="faqlink">ProxyJudge</a>。它列出了服务器端从你这里所收到的HTTP的头标志。相关的几个标志是HTTP_CLIENT_IP，HTTP_X_FORWARDED_FOR和REMOTE_ADDR。',
+        'answer' => '试试看<a href="https://proxycheck.io/web" class="faqlink">ProxyCheck</a>。它列出了服务器端从你这里所收到的HTTP的头标志。相关的几个标志是HTTP_CLIENT_IP，HTTP_X_FORWARDED_FOR和REMOTE_ADDR。',
         'flag' => 1,
         'categ' => 7,
         'order' => 2,
@@ -1234,7 +1234,7 @@ If you wanna translate it into Simplified Chinese, all you need is edit the file
 See, in every line, the left part, that is before <i>=&gt;</i>, is the name of a string, which you shouldn\'t touch. All you need to is translate the right part, after <i>=&gt;</i>, which is the value of the string, into another language.<br />
 Sometimes you need to look at the corresponding web pages to get the context meaning of some words.<br /></li>
 <li>Sounds easy? See what do you need to do.<br />
-If you feel like to help us, <a class="faqlink" href="aboutnexus.php#contact"><b>CONTACT US</b></a> and we will send you a pack of the English language files (or any other available language if you prefer). Received it, you can start translating the value of strings (which is in English), into another language. It should take you several hours to do the whole work. After this, send back the translated language files to us.<br />
+If you feel like to help us, <b>CONTACT US</b> and we will send you a pack of the English language files (or any other available language if you prefer). Received it, you can start translating the value of strings (which is in English), into another language. It should take you several hours to do the whole work. After this, send back the translated language files to us.<br />
 If no bugs or hacking codes are found in testing, we would put the new language into work.<br />
 Sometimes the language files need to be updated, typically adding new strings, when site codes are updated. If you feel like it, you can help maintain the language files.<br /></li>
 <li><font color="red"><b>IMPORTANT</b></font><br />
@@ -1383,7 +1383,7 @@ If you wanna translate it into Simplified Chinese, all you need is edit the file
 See, in every line, the left part, that is before <i>=&gt;</i>, is the name of a string, which you shouldn\'t touch. All you need to is translate the right part, after <i>=&gt;</i>, which is the value of the string, into another language.<br />
 Sometimes you need to look at the corresponding web pages to get the context meaning of some words.<br /></li>
 <li>Sounds easy? See what do you need to do.<br />
-If you feel like to help us, <a class="faqlink" href="aboutnexus.php#contact"><b>CONTACT US</b></a> and we will send you a pack of the English language files (or any other available language if you prefer). Received it, you can start translating the value of strings (which is in English), into another language. It should take you several hours to do the whole work. After this, send back the translated language files to us.<br />
+If you feel like to help us, <b>CONTACT US</b> and we will send you a pack of the English language files (or any other available language if you prefer). Received it, you can start translating the value of strings (which is in English), into another language. It should take you several hours to do the whole work. After this, send back the translated language files to us.<br />
 If no bugs or hacking codes are found in testing, we would put the new language into work.<br />
 Sometimes the language files need to be updated, typically adding new strings, when site codes are updated. If you feel like it, you can help maintain the language files.<br /></li>
 <li><font color="red"><b>IMPORTANT</b></font><br />
@@ -1621,7 +1621,7 @@ The text of language files must be encoded in UTF-8. When saving files, be sure 
         'lang_id' => 28,
         'type' => 'item',
         'question' => '到底什么是BT（Bittorrent）？我要如何才能弄到這類程式？',
-        'answer' => '參看<a class="faqlink" href="http://www.btfaq.com/">Brian的BitTorrent FAQ及指導</a>。',
+        'answer' => '參看<a class="faqlink" href="https://www.zdnet.com/article/what-is-torrenting-and-how-does-it-work/">Brian的BitTorrent FAQ及指導</a>。',
         'flag' => 1,
         'categ' => 1,
         'order' => 1,
@@ -1645,8 +1645,8 @@ The text of language files must be encoded in UTF-8. When saving files, be sure 
         'lang_id' => 28,
         'type' => 'item',
         'question' => '我從哪裡可以搞到來源碼的拷貝？',
-        'answer' => '這個Tracker使用的是NexusPHP的程式碼。程式碼抓取事宜，請看<a class="faqlink" href="aboutnexus.php">這裡</a>。<br />
-NexusPHP的程式碼是根據TBSource的源碼改寫的。TBDev網站，Tracker來源碼以及社區論壇都在這裡：<a class="faqlink" href="http://www.tbdev.net/">TBDev.net</a>。',
+        'answer' => '這個Tracker使用的是NexusPHP的程式碼。程式碼抓取事宜，請看這裡。<br />
+NexusPHP的程式碼是根據TBSource的源碼改寫的。TBDev網站，Tracker來源碼以及社區論壇都在這裡：<a class="faqlink" href="https://github.com/xiaomlove/nexusphp">NexusPHP on GitHub</a>。',
         'flag' => 1,
         'categ' => 1,
         'order' => 3,
@@ -1746,7 +1746,7 @@ NexusPHP的程式碼是根據TBSource的源碼改寫的。TBDev網站，Tracker�
 這意味着其他的大批Peer無法連線到你，只能由你連線到他們。更糟糕的情況是，如果兩個Peer都處于這樣的狀態，他們將完全無法連線到對方。這對于整體速度有着非常不利的影響。
 <br />
 <br />
-對于這個問題，有以下解決方式：對于防火牆，開啟用于接收連線的通訊埠（即你在BT用戶端中定義的通訊埠）；對于NAT，你需要配置NAT伺服器使用Basic NAT方式而不是NAPT（不同的路線有着不同的執行方式。翻閱你的路線文件或客服論壇。你也可以在<a class="faqlink" href="http://portforward.com/">PortForward</a>找到關于此問題的大量資訊）。
+對于這個問題，有以下解決方式：對于防火牆，開啟用于接收連線的通訊埠（即你在BT用戶端中定義的通訊埠）；對于NAT，你需要配置NAT伺服器使用Basic NAT方式而不是NAPT（不同的路線有着不同的執行方式。翻閱你的路線文件或客服論壇。你也可以在<a class="faqlink" href="https://portforward.com/">PortForward</a>找到關于此問題的大量資訊）。
 
 
 
@@ -2037,26 +2037,26 @@ NexusPHP的程式碼是根據TBSource的源碼改寫的。TBDev網站，Tracker�
         'lang_id' => 28,
         'type' => 'item',
         'question' => '我可以任意選取Bittorrent用戶端軟體么？',
-        'answer' => '根據<a class="faqlink" href="aboutnexus.php">NexusPHP</a>對常見BitTorrent用戶端的測試，目前本站Tracker<b>只允許</b>使用以下的BitTorrent用戶端軟體。<br />
-<a class="faqlink" href="aboutnexus.php">NexusPHP</a>的測試報告可<a class="faqlink" href="https://nexusphp.org/wiki/%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A">在此檢視</a>。
+        'answer' => '根據NexusPHP對常見BitTorrent用戶端的測試，目前本站Tracker<b>只允許</b>使用以下的BitTorrent用戶端軟體。<br />
+NexusPHP的測試報告可<a class="faqlink" href="https://nexusphp.org/wiki/%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A">在此檢視</a>。
 <br />
 <b>Windows:</b>
 <ul>
-<li><a class="faqlink" href="http://www.utorrent.com">uTorrent</a>: 僅版本 2.2.1</li>
+<li><a class="faqlink" href="https://www.utorrent.com/desktop/">uTorrent</a>: 僅版本 2.2.1</li>
 <li><a class="faqlink" href="https://www.bitcomet.com">BitComet</a>: 2.21及後續版本</li>
 <li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: 4.4.5及後續版本</li>
-<li><a class="faqlink" href="http://deluge-torrent.org">Deluge</a>: 0.5.9.1, 1.1.6及后續版本</li>
+<li><a class="faqlink" href="https://deluge-torrent.org/download/">Deluge</a>: 0.5.9.1, 1.1.6及后續版本</li>
 </ul>
 <b>Linux:</b>
 <ul>
-<li><a class="faqlink" href="http://deluge-torrent.org">Deluge</a>: 0.5.9.1, 1.1.6及后續版本</li>
-<li><a class="faqlink" href="http://www.transmissionbt.com">Transmission</a>: 1.21及后續版本</li>
+<li><a class="faqlink" href="https://deluge-torrent.org/download/">Deluge</a>: 0.5.9.1, 1.1.6及后續版本</li>
+<li><a class="faqlink" href="https://transmissionbt.com/download/">Transmission</a>: 1.21及后續版本</li>
 <li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: 4.4.5及後續版本</li>
-<li><a class="faqlink" href="http://libtorrent.rakshasa.no">rTorrent</a>: 0.8.0（配合libtorrent 0.12.0或后續版本）及后續版本</li>
+<li><a class="faqlink" href="https://github.com/rakshasa/rtorrent">rTorrent</a>: 0.8.0（配合libtorrent 0.12.0或后續版本）及后續版本</li>
 </ul>
 <b>MacOS X:</b>
 <ul>
-<li><a class="faqlink" href="http://www.transmissionbt.com">Transmission</a>: 1.21及后續版本</li>
+<li><a class="faqlink" href="https://transmissionbt.com/download/">Transmission</a>: 1.21及后續版本</li>
 <li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: 4.4.5及後續版本</li>
 </ul>
 <br />
@@ -2340,7 +2340,7 @@ NexusPHP的程式碼是根據TBSource的源碼改寫的。TBDev網站，Tracker�
 </tr>
 </table>
 <br />
-要使用我們的Tracker伺服器，你必須配置你的用戶端使用未在上面列出的通訊埠範圍(從49152到65535都是不錯的選取，參看<a class="faqlink" href="http://www.iana.org/assignments/port-numbers">IANA</a>)。注意某些用戶端，對所有的種子都使用同一通訊埠。而其他大多數用戶端為每一個種子開放一個通訊埠，你在選取通訊埠範圍應考慮到這個問題（一般來說通訊埠範圍小于10。設定一個過大的範圍并不一定有好處，而且可能有安全隱患)。 <br />
+要使用我們的Tracker伺服器，你必須配置你的用戶端使用未在上面列出的通訊埠範圍(從49152到65535都是不錯的選取，參看<a class="faqlink" href="https://www.iana.org/assignments/service-names-port-numbers/">IANA</a>)。注意某些用戶端，對所有的種子都使用同一通訊埠。而其他大多數用戶端為每一個種子開放一個通訊埠，你在選取通訊埠範圍應考慮到這個問題（一般來說通訊埠範圍小于10。設定一個過大的範圍并不一定有好處，而且可能有安全隱患)。 <br />
 <br />
 這些通訊埠是用于同伴間通訊的，而非用于用戶端連線到Tracker伺服器。因此這個改動并不會影響你使用其他Tracker伺服器（事實上，它甚至可能<i>加快</i>所有Tracker伺服器上種子的速度）。你的用戶端也仍然能夠連線到那些使用預設通訊埠的同伴。如果你的用戶端不支援自己自訂通訊埠，那么換一個吧。<br />
 <br />
@@ -2502,7 +2502,7 @@ array (
 'lang_id' => 28,
 'type' => 'item',
 'question' => '我該怎樣發現自己正處于一個（透通的/匿名的）代理后面？',
-'answer' => '試試看<a href="http://proxyjudge.org" class="faqlink">ProxyJudge</a>。它列出了伺服器端從你這裡所收到的HTTP的頭旗標。相關的几個旗標是HTTP_CLIENT_IP，HTTP_X_FORWARDED_FOR和REMOTE_ADDR。',
+'answer' => '試試看<a href="https://proxycheck.io/web" class="faqlink">ProxyCheck</a>。它列出了伺服器端從你這裡所收到的HTTP的頭旗標。相關的几個旗標是HTTP_CLIENT_IP，HTTP_X_FORWARDED_FOR和REMOTE_ADDR。',
 'flag' => 1,
 'categ' => 7,
 'order' => 2,
@@ -2634,7 +2634,7 @@ array (
 'lang_id' => 6,
 'type' => 'item',
 'question' => 'What is this bittorrent all about anyway? How do I get the files?',
-'answer' => 'Check out <a class="faqlink" href="http://www.btfaq.com/">Brian\'s BitTorrent FAQ and Guide</a>.',
+'answer' => 'Check out <a class="faqlink" href="https://www.zdnet.com/article/what-is-torrenting-and-how-does-it-work/">Brian\'s BitTorrent FAQ and Guide</a>.',
 'flag' => 1,
 'categ' => 1,
 'order' => 1,
@@ -2658,8 +2658,8 @@ array (
 'lang_id' => 6,
 'type' => 'item',
 'question' => 'Where can I get a copy of the source code?',
-'answer' => 'This tracker is powered by NexusPHP. If you like to use NexusPHP to power your tracker, <a class="faqlink" href="aboutnexus.php">Contact Us</a>.<br />
-The first stage of NexusPHP forks from TBSource. You may find more information about TBSource at <a class="faqlink" href="http://www.tbdev.net/">TBDev.net</a>.',
+'answer' => 'This tracker is powered by NexusPHP. If you like to use NexusPHP to power your tracker, Contact Us.<br />
+The first stage of NexusPHP forks from TBSource. You may find more information about TBSource at <a class="faqlink" href="https://github.com/xiaomlove/nexusphp">NexusPHP on GitHub</a>.',
 'flag' => 1,
 'categ' => 1,
 'order' => 3,
@@ -2759,7 +2759,7 @@ array (
 This means that other peers in the swarm will be unable to connect to you, only you to them. Even worse, if two peers are both in this state they will not be able to connect at all. This has obviously a detrimental effect on the overall speed.
 <br />
 <br />
-The way to solve the problem involves opening the ports used for incoming connections (the same range you defined in your client) on the firewall and/or configuring your NAT server to use a basic form of NAT for that range instead of NAPT (the actual process differs widely between different router models. Check your router documentation and/or support forum. You will also find lots of information on the subject at <a class="faqlink" href="http://portforward.com/">PortForward</a>).
+The way to solve the problem involves opening the ports used for incoming connections (the same range you defined in your client) on the firewall and/or configuring your NAT server to use a basic form of NAT for that range instead of NAPT (the actual process differs widely between different router models. Check your router documentation and/or support forum. You will also find lots of information on the subject at <a class="faqlink" href="https://portforward.com/">PortForward</a>).
 
 
 
@@ -3046,26 +3046,26 @@ array (
 'lang_id' => 6,
 'type' => 'item',
 'question' => 'May I use any bittorrent client?',
-'answer' => 'No. According to tests of common bittorrent clients by <a class="faqlink" href="aboutnexus.php">NexusPHP</a>, we allowed <b>only</b> the following bittorrent clients.<br />
-The test report by <a class="faqlink" href="aboutnexus.php">NexusPHP</a> is <a class="faqlink" href="https://nexusphp.org/wiki/%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A">here</a>.
+'answer' => 'No. According to tests of common bittorrent clients by NexusPHP, we allowed <b>only</b> the following bittorrent clients.<br />
+The test report by NexusPHP is <a class="faqlink" href="https://nexusphp.org/wiki/%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A">here</a>.
 <br />
 <b>Windows:</b>
 <ul>
-<li><a class="faqlink" href="http://www.utorrent.com">uTorrent</a>: version 2.2.1 only</li>
+<li><a class="faqlink" href="https://www.utorrent.com/desktop/">uTorrent</a>: version 2.2.1 only</li>
 <li><a class="faqlink" href="https://www.bitcomet.com">BitComet</a>: version 2.21 and later</li>
 <li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: version 4.4.5 and later</li>
-<li><a class="faqlink" href="http://deluge-torrent.org">Deluge</a>: 0.5.9.1, 1.1.6 and later versions</li>
+<li><a class="faqlink" href="https://deluge-torrent.org/download/">Deluge</a>: 0.5.9.1, 1.1.6 and later versions</li>
 </ul>
 <b>Linux:</b>
 <ul>
-<li><a class="faqlink" href="http://deluge-torrent.org">Deluge</a>: 0.5.9.1, 1.1.6 and later versions</li>
-<li><a class="faqlink" href="http://www.transmissionbt.com">Transmission</a>: 1.21 and later versions</li>
+<li><a class="faqlink" href="https://deluge-torrent.org/download/">Deluge</a>: 0.5.9.1, 1.1.6 and later versions</li>
+<li><a class="faqlink" href="https://transmissionbt.com/download/">Transmission</a>: 1.21 and later versions</li>
 <li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: version 4.4.5 and later</li>
-<li><a class="faqlink" href="http://libtorrent.rakshasa.no">rTorrent</a>: 0.8.0(with libtorrent 0.12.0 or later) and later versions</li>
+<li><a class="faqlink" href="https://github.com/rakshasa/rtorrent">rTorrent</a>: 0.8.0(with libtorrent 0.12.0 or later) and later versions</li>
 </ul>
 <b>MacOS X:</b>
 <ul>
-<li><a class="faqlink" href="http://www.transmissionbt.com">Transmission</a>: 1.21 and later versions</li>
+<li><a class="faqlink" href="https://transmissionbt.com/download/">Transmission</a>: 1.21 and later versions</li>
 <li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: version 4.4.5 and later</li>
 </ul>
 <br />
@@ -3349,7 +3349,7 @@ The blocked ports list include the following:<br />
 </table>
 <br />
 In order to use our tracker you must configure your client to use any port range that does not contain those ports (a range within the region 49152 through 65535 is preferable,
-cf. <a class="faqlink" href="http://www.iana.org/assignments/port-numbers">IANA</a>). Notice that some clients use a single port for all torrents, while most others use one port per open torrent. The size of the range you choose should take this into account (typically less than 10 ports wide. There is no benefit whatsoever in choosing a wide range, and there are possible security implications). <br />
+cf. <a class="faqlink" href="https://www.iana.org/assignments/service-names-port-numbers/">IANA</a>). Notice that some clients use a single port for all torrents, while most others use one port per open torrent. The size of the range you choose should take this into account (typically less than 10 ports wide. There is no benefit whatsoever in choosing a wide range, and there are possible security implications). <br />
 <br />
 These ports are used for connections between peers, not client to tracker. Therefore this change will not interfere with your ability to use other trackers (in fact it should <i>increase</i> your speed with torrents from any tracker, not just ours). Your client will also still be able to connect to peers that are using the standard ports. If your client does not allow custom ports to be used, you will have to switch to one that does.<br />
 <br />
@@ -3510,7 +3510,7 @@ array (
     'lang_id' => 6,
     'type' => 'item',
 'question' => 'How do I find out if I\'m behind a (transparent/anonymous) proxy?',
-    'answer' => 'Try <a href="http://proxyjudge.org" class="faqlink">ProxyJudge</a>. It lists the HTTP headers that the server where it is running received from you. The relevant ones are HTTP_CLIENT_IP, HTTP_X_FORWARDED_FOR and REMOTE_ADDR.',
+    'answer' => 'Try <a href="https://proxycheck.io/web" class="faqlink">ProxyCheck</a>. It lists the HTTP headers that the server where it is running received from you. The relevant ones are HTTP_CLIENT_IP, HTTP_X_FORWARDED_FOR and REMOTE_ADDR.',
     'flag' => 1,
     'categ' => 7,
     'order' => 2,
@@ -3729,7 +3729,7 @@ If you wanna translate it into Simplified Chinese, all you need is edit the file
 See, in every line, the left part, that is before <i>=&gt;</i>, is the name of a string, which you shouldn\'t touch. All you need to is translate the right part, after <i>=&gt;</i>, which is the value of the string, into another language.<br />
 Sometimes you need to look at the corresponding web pages to get the context meaning of some words.<br /></li>
 <li>Sounds easy? See what do you need to do.<br />
-If you feel like to help us, <a class="faqlink" href="aboutnexus.php#contact"><b>CONTACT US</b></a> and we will send you a pack of the English language files (or any other available language if you prefer). Received it, you can start translating the value of strings (which is in English), into another language. It should take you several hours to do the whole work. After this, send back the translated language files to us.<br />
+If you feel like to help us, <b>CONTACT US</b> and we will send you a pack of the English language files (or any other available language if you prefer). Received it, you can start translating the value of strings (which is in English), into another language. It should take you several hours to do the whole work. After this, send back the translated language files to us.<br />
 If no bugs or hacking codes are found in testing, we would put the new language into work.<br />
 Sometimes the language files need to be updated, typically adding new strings, when site codes are updated. If you feel like it, you can help maintain the language files.<br /></li>
 <li><font color="red"><b>IMPORTANT</b></font><br />
@@ -3745,13 +3745,34 @@ array (
     'lang_id' => 6,
     'type' => 'item',
     'question' => 'Why does my client notify me of low disk space even if there is plenty left?',
-    'answer' => 'Most possible reason is that the file system of your disk partitions is FAT32, which has a maximum file size limit of 4 GB. If your operation system is Windows, consider converting file system to NTFS. Check <a class="faqlink" href="http://technet.microsoft.com/en-us/library/bb456984.aspx">here</a> for details.
+    'answer' => 'Most possible reason is that the file system of your disk partitions is FAT32, which has a maximum file size limit of 4 GB. If your operation system is Windows, consider converting file system to NTFS. Check <a class="faqlink" href="https://learn.microsoft.com/en-us/previous-versions/windows/it-pro/windows-xp/bb456984(v=technet.10)">here</a> for details.
 ',
     'flag' => 1,
     'categ' => 5,
     'order' => 17,
 ),
-));
+);
+
+        $faq = array_filter($faq, static fn(array $item): bool =>
+            !in_array((int) $item['link_id'], [12, 71], true)
+            && (int) $item['categ'] !== 71
+        );
+
+        foreach ($faq as &$item) {
+            $item['answer'] = preg_replace(
+                '/<a\b[^>]*href=["\']aboutnexus\.php(?:#[^"\']*)?["\'][^>]*>(.*?)<\/a>/is',
+                '$1',
+                $item['answer']
+            );
+            $item['answer'] = preg_replace(
+                '/<br\s*\/>\s*.*?<a\b[^>]*href=["\']https:\/\/nexusphp\.org\/wiki\/[^"\']*["\'][^>]*>.*?<\/a>\.?/is',
+                '',
+                $item['answer']
+            );
+        }
+        unset($item);
+
+        \DB::table('faq')->insert(array_values($faq));
 
 
     }

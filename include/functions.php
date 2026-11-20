@@ -2520,7 +2520,9 @@ function stdhead($title = "", $msgalert = true, $script = "", $place = "")
 	$title = $SITENAME." :: " . htmlspecialchars($title);
 	if ($titlekeywords_tweak)
 		$title .= " ".htmlspecialchars($titlekeywords_tweak);
-	$title .= " - Powered by ".PROJECTNAME;
+	if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'index.php') {
+		$title .= " - Powered by ".PROJECTNAME;
+	}
 	if ($SITE_ONLINE == "no") {
 		if (get_user_class() < UC_ADMINISTRATOR) {
 			die($lang_functions['std_site_down_for_maintenance']);
@@ -2999,9 +3001,11 @@ function stdfoot() {
 	// Variables for End Time
 	$tend = microtime(true);
 	$totaltime = ($tend - nexus()->getStartTimestamp());
-	$year = substr($datefounded, 0, 4);
-	$yearfounded = ($year ? $year : 2007);
-	print(" (c) "." <a href=\"" . get_protocol_prefix() . $BASEURL."\" target=\"_self\">".$SITENAME."</a> ".($icplicense_main ? " ".$icplicense_main." " : "").(date("Y") != $yearfounded ? $yearfounded."-" : "").date("Y")." ".VERSION."<br /><br />");
+	if (basename($_SERVER['SCRIPT_NAME'] ?? '') !== 'index.php') {
+		$year = substr($datefounded, 0, 4);
+		$yearfounded = ($year ? $year : 2007);
+		print(" (c) "." <a href=\"" . get_protocol_prefix() . $BASEURL."\" target=\"_self\">".$SITENAME."</a> ".($icplicense_main ? " ".$icplicense_main." " : "").(date("Y") != $yearfounded ? $yearfounded."-" : "").date("Y")." ".VERSION."<br /><br />");
+	}
 	printf ("[page created in <b> %s </b> sec", sprintf("%.3f", $totaltime));
     $debugQuery = $enablesqldebug_tweak == 'yes' && get_user_class() >= $sqldebug_tweak;
     if ($debugQuery) {

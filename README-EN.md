@@ -1,4 +1,4 @@
-English | [中文](/)
+English
 
 Complete PT website building solution. Based on NexusPHP + Laravel + FilamentPHP.
 
@@ -42,7 +42,7 @@ Welcome to participate in internationalization work, click [here](https://github
 ## System Requirements
 - PHP: 8.3|8.4|8.5, must have extensions: bcmath, ctype, curl, fileinfo, json, mbstring, openssl, pdo_mysql, tokenizer, xml, mysqli, gd, redis, pcntl, sockets, posix, gmp, zend opcache, zip, intl, pdo_sqlite, sqlite3, pdo_pgsql
 - Database: MySQL 5.7 latest version or above/PostgreSQL 16 or above
-- Redis：4.0.0 or above
+- Redis: 4.0.0 or above
 - Others: supervisor, rsync
 
 ## Quick Start
@@ -57,6 +57,6 @@ docker run --name my-nexusphp -e DOMAIN=xxx.com -p 80:80 xiaomlove/nexusphp:late
 **Production environments are recommended to refer to the documentation for live installation.**
 
 ## More information
-Blog：[https://nexusphp.org](https://nexusphp.org/)  
-Documentation：[https://doc.nexusphp.org](https://doc.nexusphp.org/en/)  
+Blog: [https://nexusphp.org](https://nexusphp.org/)
+Documentation: [https://doc.nexusphp.org](https://doc.nexusphp.org/en/)
 Telegram: [https://t.me/nexusphp_dev](https://t.me/nexusphp_dev)  

@@ -1489,7 +1489,7 @@ function get_user_locale(int $uid): string
     if (empty($result) || empty($result[0]['site_lang_folder'])) {
         return "en";
     }
-    return \App\Http\Middleware\Locale::$languageMaps[$result[0]['site_lang_folder']] ?? $result[0]['site_lang_folder'];
+    return \App\Http\Middleware\Locale::$languageMaps[$result[0]['site_lang_folder']] ?? 'en';
 }
 
 function send_admin_success_notification(string $msg = ""): void {

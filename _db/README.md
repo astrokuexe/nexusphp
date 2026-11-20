@@ -1,1 +1,1 @@
-**v1.6 起不需要单独创建数据表，安装过程通过 migration 文件自动创建。此目录文件仅作保留。**
+**Since v1.6, database tables are created automatically by migration files during installation. Files in this directory are retained for reference only.**

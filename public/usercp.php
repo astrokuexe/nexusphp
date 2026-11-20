@@ -618,7 +618,7 @@ if ($showaudiocodec) $audiocodecs = searchbox_item_list("audiocodecs");
 				if ($ss_id == $CURUSER["stylesheet"]) $ss = " selected"; else $ss = "";
 				$stylesheets .= "<option value=$ss_id$ss>$ss_name</option>\n";
 			}
-            tr_small($lang_usercp['row_stylesheet'], "<select name=stylesheet>\n$stylesheets\n</select>&nbsp;&nbsp;<font class=small>".$lang_usercp['text_stylesheet_note']."<a href=\"aboutnexus.php#stylesheet\" ><b>".$lang_usercp['text_stylesheet_link']."</b></a></font>.",1);
+            tr_small($lang_usercp['row_stylesheet'], "<select name=stylesheet>\n$stylesheets\n</select>",1);
             /**
              * make no sense, should no exists!
              * @since v1.6.0
@@ -641,7 +641,7 @@ if ($showaudiocodec) $audiocodecs = searchbox_item_list("audiocodecs");
 				if ($row["site_lang_folder"] == get_langfolder_cookie()) $se = " selected"; else $se = "";
 				$s .= "<option value=". $row["id"] . $se. ">" . htmlspecialchars($row["lang_name"]) . "</option>\n";
 			}
-			$s .= "\n</select>&nbsp;&nbsp;<font class=small>".$lang_usercp['text_translation_note']."<a href=\"aboutnexus.php#translation\"><b>".$lang_usercp['text_translation_link']."</b></a></font>.</td></tr>";
+			$s .= "\n</select></td></tr>";
 
 			tr_small($lang_usercp['row_site_language'], $s,1);
 

@@ -77,8 +77,8 @@ class LanguageTableSeeder extends Seeder
             5 => 
             array (
                 'id' => 6,
-                'lang_name' => 'English',
-                'flagpic' => 'uk.gif',
+                'lang_name' => 'English (US)',
+                'flagpic' => 'usa.gif',
                 'sub_lang' => 1,
                 'rule_lang' => 1,
                 'site_lang' => 1,
@@ -286,13 +286,13 @@ class LanguageTableSeeder extends Seeder
             24 => 
             array (
                 'id' => 25,
-                'lang_name' => '简体中文',
+                'lang_name' => 'Chinese (Simplified)',
                 'flagpic' => 'china.gif',
                 'sub_lang' => 1,
-                'rule_lang' => 1,
-                'site_lang' => 1,
+                'rule_lang' => 0,
+                'site_lang' => 0,
                 'site_lang_folder' => 'chs',
-                'trans_state' => 'up-to-date',
+                'trans_state' => 'unavailable',
             ),
             25 => 
             array (
@@ -319,13 +319,13 @@ class LanguageTableSeeder extends Seeder
             27 => 
             array (
                 'id' => 28,
-                'lang_name' => '繁體中文',
+                'lang_name' => 'Chinese (Traditional)',
                 'flagpic' => 'hongkong.gif',
                 'sub_lang' => 1,
-                'rule_lang' => 1,
-                'site_lang' => 1,
+                'rule_lang' => 0,
+                'site_lang' => 0,
                 'site_lang_folder' => 'cht',
-                'trans_state' => 'up-to-date',
+                'trans_state' => 'unavailable',
             ),
             28 => 
             array (

@@ -650,14 +650,6 @@ if ($showtrackerload == "yes") {
 	}
 	echo $Cache->next_row();
 // ------------- end: links ------------------//
-// ------------- start: browser, client and code note ------------------//
-?>
-<table width="100%" class="main" border="0" cellspacing="0" cellpadding="0"><tr><td class="embedded">
-<div align="center"><br /><font class="medium"><?php echo $lang_index['text_browser_note'] ?></font></div>
-<div align="center"><a href="<?php echo NEXUSPHPURL?>" title="<?php echo PROJECTNAME?>" target="_blank"><img src="pic/nexus.png" alt="<?php echo PROJECTNAME?>" /></a></div>
-</td></tr></table>
-<?php
-// ------------- end: browser, client and code note ------------------//
 if ($CURUSER)
 	$USERUPDATESET[] = "last_home = ".sqlesc(date("Y-m-d H:i:s"));
 $Cache->delete_value('user_'.$CURUSER["id"].'_unread_news_count');

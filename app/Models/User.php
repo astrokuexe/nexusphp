@@ -331,7 +331,7 @@ class User extends Authenticatable implements FilamentUser, HasName
     public function getSiteLangFolderAttribute()
     {
         $result = optional($this->language)->site_lang_folder;
-        if ($result && in_array($result, ['en', 'chs', 'cht'])) {
+        if ($result === 'en') {
             return $result;
         }
         return 'en';

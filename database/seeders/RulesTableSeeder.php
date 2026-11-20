@@ -835,7 +835,6 @@ In any of the following cases, a subtitle/cue file will be judged as improper:
 [*]Duplicate.
 [*]Reported by several users and confirmed with other problems.
 [b]The staff group reserves rights to judge and deal with improper subtitles.[/b]
-Please refer to [url=http://www.nexushd.org/forums.php?action=viewtopic&forumid=13&topicid=2848][i]this thread[/i][/url] in the forum for detailed regulations on qualifying subtitle/cue files, other notes and suggestions on uploading subtitles, and subtitle naming and entitling guidance.
 
 [b]IMPLEMENTING REGULATIONS OF REWARDS AND PENALTIES [/b]
 [*]Reporting against improper subtitles and the uploaders who purposely upload improper subtitles is always welcomed. To report an improper subtitle, please click on the [i]REPORT[/i] button of the corresponding subtitle in the subtitle section. To report a user, please click on the [i]REPORT[/i] button at the bottom of the user details page.
@@ -869,7 +868,7 @@ Please refer to [url=http://www.nexushd.org/forums.php?action=viewtopic&forumid=
 [*]被判定为重复。
 [*]接到多个用户举报并被证实有其它问题的。
 [b]管理组保留裁定和处理不合格字幕的权力。[/b]
-不合格字幕/cue文件判定细则、字幕上传的其它注意事项以及命名指引请参阅论坛的[url=http://www.nexushd.org/forums.php?action=viewtopic&forumid=13&topicid=2848]这个帖子[/url]。
+不合格字幕/cue文件判定细则、字幕上传的其它注意事项以及命名指引请参阅论坛的这个帖子。
 
 [b]字幕奖惩：[/b]
 [*]欢迎举报不合格的字幕和恶意发布不合格字幕的用户。举报不合格字幕请在字幕区点击相应字幕的“举报”按钮。举报用户请点击相应用户详细信息页面底部的“举报”按钮。
@@ -939,7 +938,7 @@ You can join [color=#1cc6d5][b]Retiree[/b][/color] [b]unconditionally[/b].
 [*]被判定為重複。
 [*]接到多個用戶舉報並被證實有其它問題的。
 [b]管理組保留裁定和處理不合格字幕的權力。[/b]
-不合格字幕/cue檔判定細則、字幕上傳的其它注意事項以及命名指引請參閱論壇的[url=http://www.nexushd.org/forums.php?action=viewtopic&forumid=13&topicid=2848]這個帖子[/url]。
+不合格字幕/cue檔判定細則、字幕上傳的其它注意事項以及命名指引請參閱論壇的這個帖子。
 
 [b]字幕獎懲：[/b]
 [*]歡迎舉報不合格的字幕和惡意發佈不合格字幕的用戶。舉報不合格字幕請在字幕區點擊相應字幕的“舉報”按鈕。舉報使用者請點擊相應使用者詳細資訊頁面底部的“舉報”按鈕。
