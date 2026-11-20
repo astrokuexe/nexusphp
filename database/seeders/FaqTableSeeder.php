@@ -3046,39 +3046,15 @@ array (
 'lang_id' => 6,
 'type' => 'item',
 'question' => 'May I use any bittorrent client?',
-'answer' => 'No. According to tests of common bittorrent clients by NexusPHP, we allowed <b>only</b> the following bittorrent clients.<br />
-The test report by NexusPHP is <a class="faqlink" href="https://nexusphp.org/wiki/%E5%AE%A2%E6%88%B7%E7%AB%AF%E6%B5%8B%E8%AF%95%E6%8A%A5%E5%91%8A">here</a>.
-<br />
-<b>Windows:</b>
+'answer' => 'Your torrent client must report accurate share statistics. While we permit usage of any clients, some experimental or not well tested versions frequently have issues with connections to the server and other clients and may report incorrect data. Please use one of our recommended client versions to ensure correct reporting:<br />
 <ul>
-<li><a class="faqlink" href="https://www.utorrent.com/desktop/">uTorrent</a>: version 2.2.1 only</li>
-<li><a class="faqlink" href="https://www.bitcomet.com">BitComet</a>: version 2.21 and later</li>
-<li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: version 4.4.5 and later</li>
-<li><a class="faqlink" href="https://deluge-torrent.org/download/">Deluge</a>: 0.5.9.1, 1.1.6 and later versions</li>
-</ul>
-<b>Linux:</b>
-<ul>
-<li><a class="faqlink" href="https://deluge-torrent.org/download/">Deluge</a>: 0.5.9.1, 1.1.6 and later versions</li>
-<li><a class="faqlink" href="https://transmissionbt.com/download/">Transmission</a>: 1.21 and later versions</li>
-<li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: version 4.4.5 and later</li>
-<li><a class="faqlink" href="https://github.com/rakshasa/rtorrent">rTorrent</a>: 0.8.0(with libtorrent 0.12.0 or later) and later versions</li>
-</ul>
-<b>MacOS X:</b>
-<ul>
-<li><a class="faqlink" href="https://transmissionbt.com/download/">Transmission</a>: 1.21 and later versions</li>
-<li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: version 4.4.5 and later</li>
-</ul>
-<br />
-
-<b>Support for https:</b>
-<ul>
-<li>uTorrent 1.61: cannot parse tracker https url, and marks itself as uTorrent 1.5</li>
-<li>rtorrent: needs to add SSL certification manually, see User Guide at its official site.</li>
-</ul>
-
-<br />
-
-Please do not use any beta or testing version of bittorrent clients, e.g. uTorrent 1.8.0B. To get the best downloading experience, we recommend <a class="faqlink" href="https://www.qbittorrent.org">qBittorrent 4.4.5 and later</a>.',
+<li>uTorrent version 2.2.1</li>
+<li>qBittorrent version 4.4.5 or newer (standard libtorrent only; do not use lt20)</li>
+<li>Deluge version 2.0.3 or newer</li>
+<li>rTorrent version 0.9.x or newer</li>
+<li>Transmission version 1.1.6 or newer</li>
+<li>BitComet version 2.21 or newer</li>
+</ul>',
 'flag' => 1,
 'categ' => 5,
 'order' => 3,
