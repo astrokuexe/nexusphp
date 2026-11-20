@@ -12,6 +12,7 @@ use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\FileUpload;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Toggle;
@@ -204,6 +205,28 @@ class EditSetting extends Page implements HasForms
             ->schema($this->getTabCaptchaSchema())
             ->columns(2)
         ;
+
+        $tabs[] = Tab::make('Donations')
+            ->id('donations')
+            ->schema([
+                FileUpload::make('misc.donation_monero_qr')
+                    ->label('Monero QR code')
+                    ->image()
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                    ->disk('public')
+                    ->directory('donation')
+                    ->visibility('public')
+                    ->maxSize(2048),
+                FileUpload::make('misc.donation_litecoin_qr')
+                    ->label('Litecoin QR code')
+                    ->image()
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp'])
+                    ->disk('public')
+                    ->directory('donation')
+                    ->visibility('public')
+                    ->maxSize(2048),
+            ])
+            ->columns(2);
 
         $tabs[] = Tab::make(__('label.setting.system.tab_header'))
             ->id('system')

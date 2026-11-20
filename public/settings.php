@@ -35,7 +35,7 @@ if ($action == 'savesettings_main')	// save main
 	$validConfig = array(
 		'site_online','max_torrent_size','announce_interval', 'annintertwoage', 'annintertwo', 'anninterthreeage', 'anninterthree', 'signup_timeout',
 		'minoffervotes','offervotetimeout','offeruptimeout','maxsubsize','postsperpage', 'topicsperpage', 'torrentsperpage', 'maxnewsnum',
-		'max_dead_torrent_time','maxusers','torrent_dir', 'iniupload','SITEEMAIL', 'ACCOUNTANTID', 'ALIPAYACCOUNT', 'PAYPALACCOUNT', 'SLOGAN',
+		'max_dead_torrent_time','maxusers','torrent_dir', 'iniupload','SITEEMAIL', 'SLOGAN',
 		'icplicense', 'autoclean_interval_one', 'autoclean_interval_two', 'autoclean_interval_three','autoclean_interval_four', 'autoclean_interval_five',
 		'reportemail','invitesystem','registration','showhotmovies','showclassicmovies','showimdbinfo', 'enable_pt_gen_system', 'pt_gen_api_point', 'enablenfo', 'enableschool','restrictemail',
 		'showpolls','showstats','showlastxtorrents', 'showtrackerload','showshoutbox','showfunbox','showoffer','sptime','showhelpbox','enablebitbucket',
@@ -921,9 +921,6 @@ JS;
 	tr($lang_settings['row_number_of_news'],"<input type='text' style=\"width: 100px\" name=maxnewsnum value='".($MAIN["maxnewsnum"] ? $MAIN["maxnewsnum"] : 3)."'> ".$lang_settings['text_number_of_news_note'], 1);
 	tr($lang_settings['row_torrent_dead_time'],"<input type='text' style=\"width: 100px\" name=max_dead_torrent_time value='".($MAIN["max_dead_torrent_time"] ? $MAIN["max_dead_torrent_time"] : "21600")."'> ".$lang_settings['text_torrent_dead_time_note'], 1);
 	tr($lang_settings['row_max_users'],"<input type='text' style=\"width: 100px\" name=maxusers value='".($MAIN["maxusers"] ? $MAIN["maxusers"] : "2500" )."'> ".$lang_settings['text_max_users'], 1);
-	tr($lang_settings['row_site_accountant_userid'],"<input type='text' style=\"width: 200px\" name=\"ACCOUNTANTID\" value='".($MAIN['ACCOUNTANTID'] ? $MAIN['ACCOUNTANTID'] : "")."'> ".$lang_settings['text_site_accountant_userid_note'], 1);
-	tr($lang_settings['row_alipay_account'],"<input type='text' style=\"width: 200px\" name=\"ALIPAYACCOUNT\" value='".($MAIN['ALIPAYACCOUNT'] ? $MAIN['ALIPAYACCOUNT'] : "")."'> ".$lang_settings['text_alipal_account_note'], 1);
-	tr($lang_settings['row_paypal_account'],"<input type='text' style=\"width: 200px\" name=PAYPALACCOUNT value='".($MAIN["PAYPALACCOUNT"] ? $MAIN["PAYPALACCOUNT"] : "")."'> ".$lang_settings['text_paypal_account_note'], 1);
 	tr($lang_settings['row_site_email'],"<input type='text' style=\"width: 200px\" name=SITEEMAIL value='".($MAIN["SITEEMAIL"] ? $MAIN["SITEEMAIL"] : "noreply@".$sh)."'> ".$lang_settings['text_site_email_note'], 1);
 	tr($lang_settings['row_report_email'],"<input type='text' style=\"width: 200px\" name=reportemail value='".($MAIN["reportemail"] ? $MAIN["reportemail"] : "report@".$sh)."'> ".$lang_settings['text_report_email_note'], 1);
 	tr($lang_settings['row_site_slogan'],"<input type='text' style=\"width: 300px\" name=SLOGAN value='".($MAIN["SLOGAN"] ? $MAIN["SLOGAN"]: "")."'> ".$lang_settings['text_site_slogan_note'], 1);

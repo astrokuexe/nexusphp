@@ -2,105 +2,136 @@
 require "../include/bittorrent.php";
 dbconn();
 require_once(get_langfile_path());
-if ($enabledonation != 'yes')
-	stderr($lang_donate['std_sorry'], $lang_donate['std_do_not_accept_donation']);
 
-$do = $_GET['do'] ?? '';
-
-if ($do == 'thanks') {
-	stderr($lang_donate['std_success'], $lang_donate['std_donation_success_note_one']."<a href=\"sendmessage.php?receiver=".$ACCOUNTANTID."\"><b>".$lang_donate['std_here']."</b></a>".$lang_donate['std_donation_success_note_two'], false);
+if ($enabledonation != 'yes') {
+    stderr($lang_donate['std_sorry'], $lang_donate['std_do_not_accept_donation']);
 }
-else
-{
-    $custom = trim(\App\Models\Setting::getByName('misc.donation_custom'));
-	$paypal = safe_email($PAYPALACCOUNT);
-	if ($paypal && check_email($paypal))
-		$showpaypal = true;
-	else
-		$showpaypal = false;
-	$alipay = safe_email($ALIPAYACCOUNT);
-	if ($alipay && check_email($alipay))
-		$showalipay = true;
-	else
-		$showalipay = false;
 
-	if ($showpaypal && $showalipay)
-		$tdattr = "width=\"50%\"";
-	elseif ($showpaypal || $showalipay)
-		$tdattr = "colspan=\"2\" width=\"100%\"";
+$wallets = [
+    'XMR' => [
+        'name' => 'Monero',
+        'address' => '49Jjbyvf8ECY3bL72JGrcKaCuGQhW8msoe8sHdfrJtmU4CRVEgW5FMYGiSPmJ1WYUW4rf12MBMqsKCHYAH9fSb9rQziw5oL',
+        'uri' => 'monero:',
+        'setting' => 'misc.donation_monero_qr',
+    ],
+    'LTC' => [
+        'name' => 'Litecoin',
+        'address' => 'ltc1q48zfgvtc0f0sjkkw5ndvd5n4aqz0qansstx8ac',
+        'uri' => 'litecoin:',
+        'setting' => 'misc.donation_litecoin_qr',
+    ],
+];
 
-	if (!$showpaypal && !$showalipay && !$custom) {
-        stderr($lang_donate['std_error'], $lang_donate['std_no_donation_account_available'], false);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    loggedinorreturn();
+
+    $reportToken = $_POST['report_token'] ?? '';
+    $tokenData = null;
+    if (is_string($reportToken) && $reportToken !== '') {
+        try {
+            $tokenData = json_decode(\Illuminate\Support\Facades\Crypt::decryptString($reportToken), true);
+        } catch (\Illuminate\Contracts\Encryption\DecryptException) {
+            $tokenData = null;
+        }
     }
 
-	stdhead($lang_donate['head_donation']);
-	begin_main_frame();
-	print("<h2>".$lang_donate['text_donate']."</h2>");
-	print("<table width=100%>");
-	print("<tr><td colspan=2 class=text align=left>".$lang_donate['text_donation_note']."</td></tr>");
-	if ($custom) {
-	    echo sprintf('<tr><td class="text" align="left" colspan="2">%s</td></tr>', format_comment($custom));
+    if (
+        !is_array($tokenData)
+        || (int) ($tokenData['user_id'] ?? 0) !== (int) $CURUSER['id']
+        || (int) ($tokenData['expires_at'] ?? 0) < time()
+    ) {
+        stderr($lang_donate['std_error'] ?? 'Error', 'The donation report form expired. Please reload the page and try again.');
     }
-	print("<tr>");
-	if ($showpaypal){
-?>
-<td class=text align=left valign=top <?php echo $tdattr?>>
-<b><?php echo $lang_donate['text_donate_with_paypal']?></b><br /><br />
-<?php echo $lang_donate['text_donate_paypal_note']?>
- <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
-  <input type="hidden" name="cmd" value="_xclick">
-  <input type="hidden" name="business" value="<?php echo $paypal;?>">
-  <input type="hidden" name="item_name" value="Donation to <?php echo $SITENAME;?>">
-  <p align="center">
-<br />
-  <?php echo $lang_donate['text_select_donation_amount']?>
-<br />
-   <select name="amount">
-<option value="" selected><?php echo $lang_donate['select_choose_donation_amount']?></option>
-<?php
-$allowedDonationUsdAmounts = array(0, 1, 5, 10, 15, 20, 30, 40, 50, 60, 100, 300);
-//$allowedDonationUsdAmounts = array(32, 64, 320);
-foreach ($allowedDonationUsdAmounts as $amount) {
-	if ($amount == 0) {
-		echo '<option value="">'.$lang_donate['select_other_donation_amount'].'</option>';
-	} else {
-		$amount = number_format($amount, 2);
-		echo '<option value='.$amount.'>'.$lang_donate['text_usd_mark'].$amount.$lang_donate['text_donation'].'</option>';
-	}
+
+    $coinInput = $_POST['coin'] ?? null;
+    $amountInput = $_POST['amount'] ?? null;
+    $transactionIdInput = $_POST['transaction_id'] ?? null;
+    if (!is_string($coinInput) || !is_string($amountInput) || !is_string($transactionIdInput)) {
+        stderr($lang_donate['std_error'] ?? 'Error', 'Enter a valid coin, positive amount, and 64-character transaction ID.');
+    }
+
+    $coin = strtoupper(trim($coinInput));
+    $amount = trim($amountInput);
+    $transactionId = trim($transactionIdInput);
+    if (!isset($wallets[$coin]) || !\App\Services\DonationReport::isValid($coin, $amount, $transactionId)) {
+        stderr($lang_donate['std_error'] ?? 'Error', 'Enter a valid coin, positive amount, and 64-character transaction ID.');
+    }
+
+    if (
+        get_user_class() < UC_MODERATOR
+        && !empty($CURUSER['last_staffmsg'])
+        && strtotime($CURUSER['last_staffmsg']) > TIMENOW - 60
+    ) {
+        $seconds = 60 - (TIMENOW - strtotime($CURUSER['last_staffmsg']));
+        stderr($lang_donate['std_error'] ?? 'Error', "Please wait {$seconds} seconds before sending another staff message.");
+    }
+
+    $coinName = $wallets[$coin]['name'];
+    $subject = "Donation report: {$coinName}";
+    $message = "Donation report\n"
+        . "Coin: {$coinName} ({$coin})\n"
+        . "Amount: {$amount}\n"
+        . "Transaction ID: " . strtolower($transactionId);
+    \App\Models\StaffMessage::add((int) $CURUSER['id'], $subject, $message);
+    sql_query("UPDATE users SET last_staffmsg = NOW() WHERE id = " . sqlesc($CURUSER['id'])) or sqlerr(__FILE__, __LINE__);
+    $Cache->delete_value('staff_message_count');
+    $Cache->delete_value('staff_new_message_count');
+    clear_staff_message_cache();
+
+    stderr($lang_donate['std_success'] ?? 'Success', 'Your report was sent to the staff for manual verification. Donations are not credited automatically.');
 }
-?>
-</select>
-    <input type="hidden" name="image_url" value="">
-    <input type="hidden" name="shipping" value="0">
-    <input type="hidden" name="currency_code" value="USD">
-    <input type="hidden" name="return" value="<?php echo  get_protocol_prefix() . $BASEURL;?>/donate.php?do=thanks">
-<input type="hidden" name="cancel_return" value="<?php echo get_protocol_prefix() . $BASEURL;?>/donate.php">
-<br />
-</p>
-<p align="center">
-<input type="image" src="pic/paypalbutton.gif" border="0" name="I1" alt="Make payments with PayPal">
-<br /><br /></p>
-</form></td>
-<?php
+
+$custom = trim((string) \App\Models\Setting::getByName('misc.donation_custom'));
+$qrImages = [];
+foreach ($wallets as $coin => $wallet) {
+    $path = \App\Models\Setting::getByName($wallet['setting']);
+    if (is_string($path) && $path !== '' && \Illuminate\Support\Facades\Storage::disk('public')->exists($path)) {
+        $qrImages[$coin] = \Illuminate\Support\Facades\Storage::disk('public')->url($path);
+    }
 }
-if ($showalipay){
-?>
-<td class=text align=left valign=top <?php echo $tdattr?>>
-<b><?php echo $lang_donate['text_donate_with_alipay']?></b><br /><br />
-<form action="https://www.alipay.com/trade/fast_pay.htm" method="get">
-<?php echo $lang_donate['text_donate_alipay_note_one']."<b>".$alipay."</b>".$lang_donate['text_donate_alipay_note_two']?>
-<br /><br /><br /><br /><br />
-<p align="center">
-<input type="image" src="pic/alipaybutton.gif" border="0" name="I2" alt="Make payments with Alipay" />
-<br /><br /></p>
-</form></td>
-<?php
+
+$reportToken = '';
+if (!empty($CURUSER)) {
+    $reportToken = \Illuminate\Support\Facades\Crypt::encryptString(json_encode([
+        'user_id' => (int) $CURUSER['id'],
+        'expires_at' => time() + 1800,
+    ]));
 }
-print("</tr>");
-print("<tr><td class=text colspan=2 align=left>".$lang_donate['text_after_donation_note_one']
-."<a href=\"sendmessage.php?receiver=".$ACCOUNTANTID."\"><font class=\"striking\"><b>".$lang_donate['text_send_us']."</b></font></a>".$lang_donate['text_after_donation_note_two']."</td></tr>");
-print("</table>");
+$escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+
+stdhead($lang_donate['head_donation']);
+begin_main_frame();
+print("<h2>" . $lang_donate['text_donate'] . "</h2>");
+print("<div class=\"text\">" . $lang_donate['text_donation_note'] . "</div>");
+if ($custom !== '') {
+    print('<div class="text">' . format_comment($custom) . '</div>');
+}
+
+print('<div style="display:flex;flex-wrap:wrap;gap:24px;margin:20px 0">');
+foreach ($wallets as $coin => $wallet) {
+    print('<section class="text" style="flex:1;min-width:280px;padding:16px;border:1px solid #888">');
+    print('<h3>' . $escape($wallet['name']) . '</h3>');
+    if (isset($qrImages[$coin])) {
+        print('<p><img src="' . $escape($qrImages[$coin]) . '" alt="' . $escape($wallet['name']) . ' QR code" style="max-width:220px;width:100%;height:auto"></p>');
+    }
+    print('<p><a href="' . $escape($wallet['uri'] . $wallet['address']) . '">' . $escape($wallet['address']) . '</a></p>');
+    print('</section>');
+}
+print('</div>');
+
+if (!empty($CURUSER)) {
+    print('<h3>Report a donation</h3>');
+    print('<p class="text">After sending a donation, submit its transaction ID for staff verification. Reports do not automatically credit your account.</p>');
+    print('<form method="post" action="donate.php">');
+    print('<input type="hidden" name="report_token" value="' . $escape($reportToken) . '">');
+    print('<p><label>Coin <select name="coin" required><option value="XMR">Monero (XMR)</option><option value="LTC">Litecoin (LTC)</option></select></label></p>');
+    print('<p><label>Amount <input name="amount" type="text" inputmode="decimal" maxlength="32" required></label></p>');
+    print('<p><label>Transaction ID <input name="transaction_id" type="text" minlength="64" maxlength="64" pattern="[A-Fa-f0-9]{64}" required></label></p>');
+    print('<p><button type="submit">Send donation report</button></p>');
+    print('</form>');
+} else {
+    print('<p class="text">Log in to report a donation for staff verification.</p>');
+}
+
 end_main_frame();
 stdfoot();
-}
-?>
