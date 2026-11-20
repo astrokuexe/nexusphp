@@ -11,7 +11,7 @@ if (!isset($id) || !$id)
 die();
 
 $taxonomyFields = "sources.name AS source_name, media.name AS medium_name, codecs.name AS codec_name, standards.name AS standard_name, processings.name AS processing_name, teams.name AS team_name, audiocodecs.name AS audiocodec_name";
-$extraFields = "torrent_extras.descr, torrent_extras.nfo, LENGTH(torrent_extras.nfo) AS nfosz, torrent_extras.media_info as technical_info";
+$extraFields = "torrent_extras.descr, torrent_extras.pt_gen, torrent_extras.nfo, LENGTH(torrent_extras.nfo) AS nfosz, torrent_extras.media_info as technical_info";
 $res = sql_query("SELECT torrents.cache_stamp, torrents.sp_state, torrents.url, torrents.small_descr, torrents.seeders, torrents.banned, torrents.leechers, torrents.info_hash, torrents.filename, torrents.last_action, torrents.name, torrents.owner, torrents.save_as, torrents.visible, torrents.size, torrents.added, torrents.views, torrents.hits, torrents.times_completed, torrents.id, torrents.type, torrents.numfiles, torrents.anonymous, torrents.hr, torrents.promotion_until, torrents.promotion_time_type, torrents.approval_status, torrents.price,
        categories.name AS cat_name, categories.mode as search_box_id, $taxonomyFields, $extraFields
 FROM torrents LEFT JOIN categories ON torrents.category = categories.id
@@ -166,6 +166,56 @@ if (!$row) {
             $taxonomyRendered .= sprintf('&nbsp;&nbsp;&nbsp;<b>%s: </b>%s', $item['label'], $item['value']);
         }
         tr($lang_details['row_basic_info'], $size_info.$type_info.$taxonomyRendered, 1);
+
+        $externalMetadata = app(\App\Services\TorrentExternalMetadata::class)->fetchForTorrent([
+            'url' => $row['url'],
+            'description' => $row['descr'] ?? '',
+            'pt_gen' => $row['pt_gen'] ?? '',
+        ]);
+        $externalMetadataHtml = '';
+        foreach ([
+            'myanimelist' => 'MyAnimeList',
+            'anidb' => 'AniDB',
+            'lost_media_wiki' => 'The Lost Media Wiki',
+        ] as $source => $sourceName) {
+            foreach ($externalMetadata[$source] as $metadata) {
+                $title = htmlspecialchars($metadata['title'] ?: $sourceName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $url = htmlspecialchars($metadata['url'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                $externalMetadataHtml .= '<div class="torrent-external-metadata">'
+                    . '<p><b><a href="' . $url . '" target="_blank" rel="noopener noreferrer">' . $title . '</a></b></p>';
+                $details = [];
+                foreach ([
+                    'type' => 'Type',
+                    'status' => 'Status',
+                    'episodes' => 'Episodes',
+                    'score' => 'Score',
+                    'start_date' => 'Start date',
+                    'end_date' => 'End date',
+                ] as $field => $label) {
+                    if (isset($metadata[$field]) && $metadata[$field] !== '') {
+                        $details[] = '<b>' . $label . ':</b> ' . htmlspecialchars((string)$metadata[$field], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                    }
+                }
+                if (!empty($metadata['genres']) && is_array($metadata['genres'])) {
+                    $details[] = '<b>Genres:</b> ' . htmlspecialchars(implode(', ', $metadata['genres']), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                }
+                if (!empty($metadata['studios']) && is_array($metadata['studios'])) {
+                    $details[] = '<b>Studios:</b> ' . htmlspecialchars(implode(', ', $metadata['studios']), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+                }
+                if ($details) {
+                    $externalMetadataHtml .= '<p>' . implode('<br />', $details) . '</p>';
+                }
+                if (!empty($metadata['synopsis'])) {
+                    $synopsis = mb_strimwidth($metadata['synopsis'], 0, 1000, '...');
+                    $externalMetadataHtml .= '<p>' . nl2br(htmlspecialchars($synopsis, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8')) . '</p>';
+                }
+                $externalMetadataHtml .= '</div>';
+            }
+        }
+        if ($externalMetadataHtml !== '') {
+            tr('External metadata', $externalMetadataHtml, 1);
+        }
+
 		$actions = [];
         if ($CURUSER["downloadpos"] != "no") {
             $hasBuy = \App\Models\TorrentBuyLog::query()->where('uid', $CURUSER['id'])->where('torrent_id', $id)->exists();

@@ -36,5 +36,18 @@ return [
         'organization' => env('CROWDIN_ORGANIZATION'), // Optional: for Crowdin Enterprise
     ],
 
+    'myanimelist' => [
+        'client_id' => env('MYANIMELIST_CLIENT_ID'),
+    ],
+
+    'anidb' => [
+        'client_name' => env('ANIDB_CLIENT_NAME'),
+        'client_version' => env('ANIDB_CLIENT_VERSION'),
+    ],
+
+    'lost_media_wiki' => [
+        'api_url' => env('LOST_MEDIA_WIKI_API_URL', 'https://lostmediawiki.com/api.php'),
+    ],
+
 ];
 
