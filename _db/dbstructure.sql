@@ -126,7 +126,9 @@ CREATE TABLE IF NOT EXISTS `agent_allowed_family` (
 --
 
 INSERT INTO `agent_allowed_family` (`id`, `family`, `start_name`, `peer_id_pattern`, `peer_id_match_num`, `peer_id_matchtype`, `peer_id_start`, `agent_pattern`, `agent_match_num`, `agent_matchtype`, `agent_start`, `exception`, `allowhttps`, `comment`, `hits`) VALUES
-(1, 'uTorrent 2.x.x', 'uTorrent 2.0(build 17624)', '/^-UT2([0-9])([0-9])([0-9])-/', 3, 'dec', '-UT2000-', '/^uTorrent\\/2([0-9])([0-9])([0-9])/', 3, 'dec', 'uTorrent/2000', 'no', 'yes', '', 0);
+(1, 'uTorrent 2.2.1', 'uTorrent 2.2.1', '/^-UT2210-/', 0, 'dec', '-UT2210-', '/^uTorrent\\/2210(?:$|[^0-9])/', 0, 'dec', 'uTorrent/2210', 'no', 'yes', '', 0),
+(2, 'BitComet 2.21+', 'BitComet 2.21', '/^-BC/', 0, 'dec', '-BC', '/^BitComet\\/([0-9]+)\\.([0-9]+)/', 2, 'dec', 'BitComet/2.21', 'no', 'yes', '', 0),
+(3, 'qBittorrent 4.4.5+', 'qBittorrent 4.4.5', '/^-qB/', 0, 'dec', '-qB', '/^qBittorrent\\/([0-9]+)\\.([0-9]+)\\.([0-9]+)/', 3, 'dec', 'qBittorrent/4.4.5', 'no', 'yes', '', 0);
 -- --------------------------------------------------------
 
 --
@@ -2464,24 +2466,4 @@ INSERT INTO `agent_allowed_family` (
 )
 VALUES (
 NULL , 'Transmission2.x', 'Transmission 2.0', '/^-TR2([0-9])([0-9])([0-9])-/', '3', 'dec', '-TR2000-', '/^Transmission\\/2\\.([0-9])([0-9])/', '3', 'dec', 'Transmission/2.00', 'no', 'yes', '', '0'
-);
-INSERT INTO `agent_allowed_family` (
-`id` ,
-`family` ,
-`start_name` ,
-`peer_id_pattern` ,
-`peer_id_match_num` ,
-`peer_id_matchtype` ,
-`peer_id_start` ,
-`agent_pattern` ,
-`agent_match_num` ,
-`agent_matchtype` ,
-`agent_start` ,
-`exception` ,
-`allowhttps` ,
-`comment` ,
-`hits`
-)
-VALUES (
-NULL , 'uTorrent 3.x', 'uTorrent/3000', '/^-UT3([0-9])([0-9])([0-9])-/', '3', 'dec', '-UT3000-', '/^uTorrent\\/3([0-9])([0-9])([0-9])/', '3', 'dec', 'uTorrent/3000', 'no', 'yes', '', '0'
 );

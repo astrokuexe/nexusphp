@@ -555,37 +555,28 @@ NexusPHP的代码是根据TBSource的源码改写的。TBDev网站，Tracker源�
 <br />
 <b>Windows:</b>
 <ul>
-<li><a class="faqlink" href="http://azureus.sourceforge.net">Azureus</a>: 2.5.0.4, 3.0.5.0, 3.0.5.2及后续版本</li>
-<li><a class="faqlink" href="http://www.utorrent.com">uTorrent</a>: 1.6.1, 1.7.5, 1.7.6, 1.7.7, 1.8Beta(Build 10364), 2.0(Build 17624)及后续版本</li>
-<li><a class="faqlink" href="http://www.bittorrent.com">BitTorrent</a>: 6.0.1, 6.0.2, 6.0.3及后续版本</li>
+<li><a class="faqlink" href="http://www.utorrent.com">uTorrent</a>: 仅版本 2.2.1</li>
+<li><a class="faqlink" href="https://www.bitcomet.com">BitComet</a>: 2.21及后续版本</li>
+<li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: 4.4.5及后续版本</li>
 <li><a class="faqlink" href="http://deluge-torrent.org">Deluge</a>: 0.5.9.1, 1.1.6及后续版本</li>
-<li><a class="faqlink" href="http://rufus.sourceforge.net">Rufus</a>: 0.6.9, 0.7.0及后续版本</li>
 </ul>
 <b>Linux:</b>
 <ul>
-<li><a class="faqlink" href="http://azureus.sourceforge.net">Azureus</a>: 2.5.0.4, 3.0.5.0, 3.0.5.2及后续版本</li>
 <li><a class="faqlink" href="http://deluge-torrent.org">Deluge</a>: 0.5.9.1, 1.1.6及后续版本</li>
-<li><a class="faqlink" href="http://rufus.sourceforge.net">Rufus</a>: 0.6.9, 0.7.0及后续版本</li>
 <li><a class="faqlink" href="http://www.transmissionbt.com">Transmission</a>: 1.21及后续版本</li>
+<li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: 4.4.5及后续版本</li>
 <li><a class="faqlink" href="http://libtorrent.rakshasa.no">rTorrent</a>: 0.8.0（配合libtorrent 0.12.0或后续版本）及后续版本</li>
-<li><a class="faqlink" href="http://www.rahul.net/dholmes/ctorrent/">Enhanced CTorrent</a>: 3.3.2及后续版本</li>
 </ul>
 <b>MacOS X:</b>
 <ul>
-<li><a class="faqlink" href="http://azureus.sourceforge.net">Azureus</a>: 2.5.0.4, 3.0.5.0, 3.0.5.2及后续版本</li>
 <li><a class="faqlink" href="http://www.transmissionbt.com">Transmission</a>: 1.21及后续版本</li>
-<li><a class="faqlink" href="http://sourceforge.net/projects/bitrocket/">BitRocket</a>: 0.3.3(32)及后续版本</li>
-</ul>
-<b>Symbian (仅供测试):</b>
-<ul>
-<li><a class="faqlink" href="http://amorg.aut.bme.hu/projects/symtorrent">SymTorrent</a>: 1.41及后续版本</li>
+<li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: 4.4.5及后续版本</li>
 </ul>
 <br />
 
 <b>以上客户端在https支持方面</b>
 <ul>
 <li>uTorrent 1.61: 无法准确解析https的tracker, 同时在使用会将自己标识为uTorrent 1.5</li>
-<li>Rufus: 没有https支持, 并且已经几年没有继续开发</li>
 <li>rtorrent: 需要手工设置SSL证书, 详细信息请自行查阅其官方网站说明</li>
 </ul>
 
@@ -593,7 +584,7 @@ NexusPHP的代码是根据TBSource的源码改写的。TBDev网站，Tracker源�
 
 同时请尽量避免使用处于测试期的客户端软件, 如uTorrent 1.8.0B。
 
-为了从本站得到最好的下载体验,我们高度推荐<a class="faqlink" href="http://www.utorrent.com/download.php">uTorrent</a> 以及<a class="faqlink" href="http://azureus.sourceforge.net/download.php">Azureus</a>这两个软件的最新稳定版。',
+为了从本站得到最好的下载体验,我们高度推荐<a class="faqlink" href="https://www.qbittorrent.org">qBittorrent 4.4.5及后续版本</a>。',
                 'flag' => 1,
                 'categ' => 5,
                 'order' => 3,
@@ -862,7 +853,7 @@ NexusPHP的代码是根据TBSource的源码改写的。TBDev网站，Tracker源�
 </tr>
 </table>
 <br />
-要使用我们的Tracker服务器，你必须配置你的客户端使用未在上面列出的端口范围(从49152到65535都是不错的选择，参看<a class="faqlink" href="http://www.iana.org/assignments/port-numbers">IANA</a>)。注意某些客户端，如Azureus 2.0.7.0或更高版本，对所有的种子都使用同一端口。而其他大多数客户端为每一个种子开放一个端口，你在选择端口范围应考虑到这个问题（一般来说端口范围小于10。设置一个过大的范围并不一定有好处，而且可能有安全隐患)。 <br />
+要使用我们的Tracker服务器，你必须配置你的客户端使用未在上面列出的端口范围(从49152到65535都是不错的选择，参看<a class="faqlink" href="http://www.iana.org/assignments/port-numbers">IANA</a>)。注意某些客户端，对所有的种子都使用同一端口。而其他大多数客户端为每一个种子开放一个端口，你在选择端口范围应考虑到这个问题（一般来说端口范围小于10。设置一个过大的范围并不一定有好处，而且可能有安全隐患)。 <br />
 <br />
 这些端口是用于同伴间通信的，而非用于客户端连接到Tracker服务器。因此这个改动并不会影响你使用其他Tracker服务器（事实上，它甚至可能<i>加快</i>所有Tracker服务器上种子的速度）。你的客户端也仍然能够连接到那些使用默认端口的同伴。如果你的客户端不支持自己自定义端口，那么换一个吧。<br />
 <br />
@@ -2051,37 +2042,28 @@ NexusPHP的程式碼是根據TBSource的源碼改寫的。TBDev網站，Tracker�
 <br />
 <b>Windows:</b>
 <ul>
-<li><a class="faqlink" href="http://azureus.sourceforge.net">Azureus</a>: 2.5.0.4, 3.0.5.0, 3.0.5.2及后續版本</li>
-<li><a class="faqlink" href="http://www.utorrent.com">uTorrent</a>: 1.6.1, 1.7.5, 1.7.6, 1.7.7, 1.8Beta(Build 10364), 2.0(Build 17624)及后續版本</li>
-<li><a class="faqlink" href="http://www.bittorrent.com">BitTorrent</a>: 6.0.1, 6.0.2, 6.0.3及后續版本</li>
+<li><a class="faqlink" href="http://www.utorrent.com">uTorrent</a>: 僅版本 2.2.1</li>
+<li><a class="faqlink" href="https://www.bitcomet.com">BitComet</a>: 2.21及後續版本</li>
+<li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: 4.4.5及後續版本</li>
 <li><a class="faqlink" href="http://deluge-torrent.org">Deluge</a>: 0.5.9.1, 1.1.6及后續版本</li>
-<li><a class="faqlink" href="http://rufus.sourceforge.net">Rufus</a>: 0.6.9, 0.7.0及后續版本</li>
 </ul>
 <b>Linux:</b>
 <ul>
-<li><a class="faqlink" href="http://azureus.sourceforge.net">Azureus</a>: 2.5.0.4, 3.0.5.0, 3.0.5.2及后續版本</li>
 <li><a class="faqlink" href="http://deluge-torrent.org">Deluge</a>: 0.5.9.1, 1.1.6及后續版本</li>
-<li><a class="faqlink" href="http://rufus.sourceforge.net">Rufus</a>: 0.6.9, 0.7.0及后續版本</li>
 <li><a class="faqlink" href="http://www.transmissionbt.com">Transmission</a>: 1.21及后續版本</li>
+<li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: 4.4.5及後續版本</li>
 <li><a class="faqlink" href="http://libtorrent.rakshasa.no">rTorrent</a>: 0.8.0（配合libtorrent 0.12.0或后續版本）及后續版本</li>
-<li><a class="faqlink" href="http://www.rahul.net/dholmes/ctorrent/">Enhanced CTorrent</a>: 3.3.2及后續版本</li>
 </ul>
 <b>MacOS X:</b>
 <ul>
-<li><a class="faqlink" href="http://azureus.sourceforge.net">Azureus</a>: 2.5.0.4, 3.0.5.0, 3.0.5.2及后續版本</li>
 <li><a class="faqlink" href="http://www.transmissionbt.com">Transmission</a>: 1.21及后續版本</li>
-<li><a class="faqlink" href="http://sourceforge.net/projects/bitrocket/">BitRocket</a>: 0.3.3(32)及后續版本</li>
-</ul>
-<b>Symbian (僅供測試):</b>
-<ul>
-<li><a class="faqlink" href="http://amorg.aut.bme.hu/projects/symtorrent">SymTorrent</a>: 1.41及后續版本</li>
+<li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: 4.4.5及後續版本</li>
 </ul>
 <br />
 
 <b>以上用戶端在https支援方面</b>
 <ul>
 <li>uTorrent 1.61: 無法准確解析https的tracker, 同時在使用會將自己識別為uTorrent 1.5</li>
-<li>Rufus: 沒有https支援, 并且已經几年沒有繼續開發</li>
 <li>rtorrent: 需要手工設定SSL證書, 詳細資訊請自行查閱其官方網站說明</li>
 </ul>
 
@@ -2089,7 +2071,7 @@ NexusPHP的程式碼是根據TBSource的源碼改寫的。TBDev網站，Tracker�
 
 同時請儘量避免使用處于測試期的用戶端軟體, 如uTorrent 1.8.0B。
 
-為了從本站得到最好的下載體驗,我們高度建議<a class="faqlink" href="http://www.utorrent.com/download.php">uTorrent</a> 以及<a class="faqlink" href="http://azureus.sourceforge.net/download.php">Azureus</a>這兩個軟體的最新穩定版。',
+為了從本站得到最好的下載體驗,我們高度建議<a class="faqlink" href="https://www.qbittorrent.org">qBittorrent 4.4.5及後續版本</a>。',
         'flag' => 1,
         'categ' => 5,
         'order' => 3,
@@ -2358,7 +2340,7 @@ NexusPHP的程式碼是根據TBSource的源碼改寫的。TBDev網站，Tracker�
 </tr>
 </table>
 <br />
-要使用我們的Tracker伺服器，你必須配置你的用戶端使用未在上面列出的通訊埠範圍(從49152到65535都是不錯的選取，參看<a class="faqlink" href="http://www.iana.org/assignments/port-numbers">IANA</a>)。注意某些用戶端，如Azureus 2.0.7.0或更高版本，對所有的種子都使用同一通訊埠。而其他大多數用戶端為每一個種子開放一個通訊埠，你在選取通訊埠範圍應考慮到這個問題（一般來說通訊埠範圍小于10。設定一個過大的範圍并不一定有好處，而且可能有安全隱患)。 <br />
+要使用我們的Tracker伺服器，你必須配置你的用戶端使用未在上面列出的通訊埠範圍(從49152到65535都是不錯的選取，參看<a class="faqlink" href="http://www.iana.org/assignments/port-numbers">IANA</a>)。注意某些用戶端，對所有的種子都使用同一通訊埠。而其他大多數用戶端為每一個種子開放一個通訊埠，你在選取通訊埠範圍應考慮到這個問題（一般來說通訊埠範圍小于10。設定一個過大的範圍并不一定有好處，而且可能有安全隱患)。 <br />
 <br />
 這些通訊埠是用于同伴間通訊的，而非用于用戶端連線到Tracker伺服器。因此這個改動并不會影響你使用其他Tracker伺服器（事實上，它甚至可能<i>加快</i>所有Tracker伺服器上種子的速度）。你的用戶端也仍然能夠連線到那些使用預設通訊埠的同伴。如果你的用戶端不支援自己自訂通訊埠，那么換一個吧。<br />
 <br />
@@ -3069,43 +3051,34 @@ The test report by <a class="faqlink" href="aboutnexus.php">NexusPHP</a> is <a c
 <br />
 <b>Windows:</b>
 <ul>
-<li><a class="faqlink" href="http://azureus.sourceforge.net">Azureus</a>: 2.5.0.4, 3.0.5.0, 3.0.5.2 and later versions</li>
-<li><a class="faqlink" href="http://www.utorrent.com">uTorrent</a>: 1.6.1, 1.7.5, 1.7.6, 1.7.7, 1.8Beta(Build 10364), 2.0(Build 17624) and later versions</li>
-<li><a class="faqlink" href="http://www.bittorrent.com">BitTorrent</a>: 6.0.1, 6.0.2, 6.0.3 and later versions</li>
+<li><a class="faqlink" href="http://www.utorrent.com">uTorrent</a>: version 2.2.1 only</li>
+<li><a class="faqlink" href="https://www.bitcomet.com">BitComet</a>: version 2.21 and later</li>
+<li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: version 4.4.5 and later</li>
 <li><a class="faqlink" href="http://deluge-torrent.org">Deluge</a>: 0.5.9.1, 1.1.6 and later versions</li>
-<li><a class="faqlink" href="http://rufus.sourceforge.net">Rufus</a>: 0.6.9, 0.7.0 and later versions</li>
 </ul>
 <b>Linux:</b>
 <ul>
-<li><a class="faqlink" href="http://azureus.sourceforge.net">Azureus</a>: 2.5.0.4, 3.0.5.0, 3.0.5.2 and later versions</li>
 <li><a class="faqlink" href="http://deluge-torrent.org">Deluge</a>: 0.5.9.1, 1.1.6 and later versions</li>
-<li><a class="faqlink" href="http://rufus.sourceforge.net">Rufus</a>: 0.6.9, 0.7.0 and later versions</li>
 <li><a class="faqlink" href="http://www.transmissionbt.com">Transmission</a>: 1.21 and later versions</li>
+<li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: version 4.4.5 and later</li>
 <li><a class="faqlink" href="http://libtorrent.rakshasa.no">rTorrent</a>: 0.8.0(with libtorrent 0.12.0 or later) and later versions</li>
-<li><a class="faqlink" href="http://www.rahul.net/dholmes/ctorrent/">Enhanced CTorrent</a>: 3.3.2 and later versions</li>
 </ul>
 <b>MacOS X:</b>
 <ul>
-<li><a class="faqlink" href="http://azureus.sourceforge.net">Azureus</a>: 2.5.0.4, 3.0.5.0, 3.0.5.2 and later versions</li>
 <li><a class="faqlink" href="http://www.transmissionbt.com">Transmission</a>: 1.21 and later versions</li>
-<li><a class="faqlink" href="http://sourceforge.net/projects/bitrocket/">BitRocket</a>: 0.3.3(32) and later versions</li>
-</ul>
-<b>Symbian (For Testing Only):</b>
-<ul>
-<li><a class="faqlink" href="http://amorg.aut.bme.hu/projects/symtorrent">SymTorrent</a>: 1.41 and later versions</li>
+<li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: version 4.4.5 and later</li>
 </ul>
 <br />
 
 <b>Support for https:</b>
 <ul>
 <li>uTorrent 1.61: cannot parse tracker https url, and marks itself as uTorrent 1.5</li>
-<li>Rufus: no support for https, and development ceased for years.</li>
 <li>rtorrent: needs to add SSL certification manually, see User Guide at its official site.</li>
 </ul>
 
 <br />
 
-Please do not use any beta or testing version of bittorrent clients, e.g. uTorrent 1.8.0B. To get the best downloading experience, we highly recommend latest stable version of <a class="faqlink" href="http://www.utorrent.com/download.php">uTorrent</a> and <a class="faqlink" href="http://azureus.sourceforge.net/download.php">Azureus</a>.',
+Please do not use any beta or testing version of bittorrent clients, e.g. uTorrent 1.8.0B. To get the best downloading experience, we recommend <a class="faqlink" href="https://www.qbittorrent.org">qBittorrent 4.4.5 and later</a>.',
 'flag' => 1,
 'categ' => 5,
 'order' => 3,
@@ -3376,7 +3349,7 @@ The blocked ports list include the following:<br />
 </table>
 <br />
 In order to use our tracker you must configure your client to use any port range that does not contain those ports (a range within the region 49152 through 65535 is preferable,
-cf. <a class="faqlink" href="http://www.iana.org/assignments/port-numbers">IANA</a>). Notice that some clients, like Azureus 2.0.7.0 or higher, use a single port for all torrents, while most others use one port per open torrent. The size of the range you choose should take this into account (typically less than 10 ports wide. There is no benefit whatsoever in choosing a wide range, and there are possible security implications). <br />
+cf. <a class="faqlink" href="http://www.iana.org/assignments/port-numbers">IANA</a>). Notice that some clients use a single port for all torrents, while most others use one port per open torrent. The size of the range you choose should take this into account (typically less than 10 ports wide. There is no benefit whatsoever in choosing a wide range, and there are possible security implications). <br />
 <br />
 These ports are used for connections between peers, not client to tracker. Therefore this change will not interfere with your ability to use other trackers (in fact it should <i>increase</i> your speed with torrents from any tracker, not just ours). Your client will also still be able to connect to peers that are using the standard ports. If your client does not allow custom ports to be used, you will have to switch to one that does.<br />
 <br />

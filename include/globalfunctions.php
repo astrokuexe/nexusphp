@@ -1238,6 +1238,7 @@ function clear_agent_allow_deny_cache()
         \Nexus\Database\NexusDB::cache_del($allowCacheKey . $suffix);
         \Nexus\Database\NexusDB::cache_del($denyCacheKey . $suffix);
     }
+    \Nexus\Database\NexusDB::cache_del('allowed_client_list');
 }
 
 /**
