@@ -75,7 +75,7 @@ stdhead($lang_userdetails['head_details_for']. $user["username"]);
 $enabled = $user["enabled"] == 'yes';
 $moviepicker = $user["picker"] == 'yes';
 
-print("<h1 style='margin:0px'>" . get_username($user['id'], true,false) . $country."</h1>");
+print("<h1 style='margin:0px'>" . get_username($user['id'], true,false) . "</h1>");
 if ($userInfo->valid_medals->isNotEmpty()) {
     print build_medal_image($userInfo->{$medalType}, 120, $CURUSER['id'] == $user['id']);
     $warnMedalJs = <<<JS

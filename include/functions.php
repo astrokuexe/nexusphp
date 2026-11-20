@@ -3978,10 +3978,21 @@ function get_username($id, $big = false, $link = true, $bold = true, $target = f
             );
         }
 
+		$countryHtml = '';
+		$countryId = (int)($arr['country'] ?? 0);
+		if ($countryId > 0) {
+			$countryRow = get_country_row($countryId);
+			if ($countryRow && !empty($countryRow['flagpic'])) {
+				$countryName = htmlspecialchars($countryRow['name'] ?? '', ENT_QUOTES);
+				$flagPic = htmlspecialchars($countryRow['flagpic'], ENT_QUOTES);
+				$countryHtml = "<img src=\"pic/flag/$flagPic\" alt=\"$countryName\" title=\"$countryName\" style=\"margin-left: $marginLeft; vertical-align: middle; max-height: $medalSize\" />";
+			}
+		}
+
 		$href = getSchemeAndHttpHost() . "/userdetails.php?id=$id";
 		$username = ($link == true ? "<a ". $link_ext . " href=\"" . $href . "\"" . ($target == true ? " target=\"_blank\"" : "") . " class='". get_user_class_name($arr['class'],true, false, false) . "_Name'>" . $username . "</a>" : $username) . $pics . ($withtitle == true ? " (" . ($arr['title'] == "" ?  get_user_class_name($arr['class'],false,true,true, ['with_alias' => true]) : "<span class='".get_user_class_name($arr['class'],true, false, false) . "_Name'><b>".htmlspecialchars($arr['title'])) . "</b></span>)" : "");
 
-		$username = "<span class=\"nowrap\">" . ( $bracket == true ? "(" . $username . ")" : $username) . "$medalHtml</span>";
+		$username = "<span class=\"nowrap\">" . ( $bracket == true ? "(" . $username . ")" : $username) . "$medalHtml$countryHtml</span>";
 	}
 	else
 	{

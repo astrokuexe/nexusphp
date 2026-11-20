@@ -782,7 +782,7 @@ function get_user_row($id)
     static $curuserRowUpdated = false;
     static $neededColumns = array(
         'id', 'noad', 'class', 'enabled', 'privacy', 'avatar', 'signature', 'uploaded', 'downloaded', 'last_access', 'username', 'donor',
-        'donoruntil', 'leechwarn', 'warned', 'title', 'downloadpos', 'parked', 'clientselect', 'showclienterror',
+        'donoruntil', 'leechwarn', 'warned', 'title', 'downloadpos', 'parked', 'clientselect', 'showclienterror', 'country',
     );
     if (isset($userRows[$id])) return $userRows[$id];
     $cacheKey = 'user_'.$id.'_content';
