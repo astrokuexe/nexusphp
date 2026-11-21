@@ -1,8 +1,13 @@
 <?php
 require_once("../include/bittorrent.php");
 header("Content-Type: text/html; charset=utf-8");
-if (!mkglobal("username"))
-	die();
+if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST' || !is_string($_POST['username'] ?? null)) {
+    die();
+}
+$username = trim(unesc($_POST['username']));
+if ($username === '') {
+    die();
+}
 dbconn();
 require_once(get_langfile_path("", false, get_langfolder_cookie()));
 failedloginscheck ();
@@ -20,12 +25,20 @@ if ($iv == "yes") {
 //同时支持新旧两种登录方式
 $useChallengeResponse = \App\Models\Setting::getIsUseChallengeResponseAuthentication();
 if ($useChallengeResponse) {
-    if (empty($_POST['response'])) {
+    if (!is_string($_POST['response'] ?? null) || !preg_match('/\A[a-f0-9]{64}\z/i', $_POST['response'])) {
         failedlogins("Require response parameter.");
     }
 } else {
-    if (empty($_POST['password'])) {
+    if (!is_string($_POST['password'] ?? null) || $_POST['password'] === '') {
         failedlogins("Require password parameter.");
+    }
+}
+
+$challenge = null;
+if ($useChallengeResponse) {
+    $challenge = $_POST['challenge'] ?? null;
+    if (!is_string($challenge) || !consume_auth_challenge($challenge, $username)) {
+        failedlogins();
     }
 }
 
@@ -35,35 +48,32 @@ $row = mysql_fetch_array($res);
 if (!$row)
 	failedlogins();
 if ($row['status'] == 'pending')
-	failedlogins($lang_takelogin['std_user_account_unconfirmed']);
+	failedlogins();
 if ($row["enabled"] == "no" && \App\Models\Setting::getSelfEnableBonus() <= 0) {
-    bark($lang_takelogin['std_account_disabled']);
+    failedlogins();
 }
 
+$log = "user: {$row['id']}, ip: $ip";
+$update = [];
+
 if (!empty($row['two_step_secret'])) {
-    if (empty($_POST['two_step_code'])) {
-        failedlogins($lang_takelogin['std_require_two_step_code']);
+    if (!is_string($_POST['two_step_code'] ?? null) || $_POST['two_step_code'] === '') {
+        failedlogins();
     }
     $ga = new \PHPGangsta_GoogleAuthenticator();
     if (!$ga->verifyCode($row['two_step_secret'], $_POST['two_step_code'])) {
-        failedlogins($lang_takelogin['std_invalid_two_step_code']);
+        failedlogins();
     }
 }
-$log = "user: {$row['id']}, ip: $ip";
-$update = [];
 if ($useChallengeResponse) {
-    $challenge = \Nexus\Database\NexusDB::cache_get(get_challenge_key($username));
-    if (empty($challenge)) {
-        failedlogins("expired");
-    }
-    $log .= ", useChallengeResponse, client response: " . $_POST['response'];
+    $log .= ", useChallengeResponse";
 } else {
     $passwordHash = hash('sha256', $row['secret'] . hash('sha256', $_POST['password']));
-    $log .= ", !useChallengeResponse, passwordHash: $passwordHash";
+    $log .= ", !useChallengeResponse";
     if (empty($row['auth_key'])) {
         //先使用旧的验证方式验证
-        if ($row["passhash"] != md5($row["secret"] . $_POST['password'] . $row["secret"])) {
-            do_log("$log, md5 not equal");
+        if (!hash_equals($row["passhash"], md5($row["secret"] . $_POST['password'] . $row["secret"]))) {
+            do_log("$log, legacy password verification failed");
             login_failedlogins();
         }
         $log .= ", no auth_key, upgrade to challenge response";
@@ -73,15 +83,12 @@ if ($useChallengeResponse) {
     //后端自动生成挑战响应
     $challenge = mksecret();
     $_POST['response'] = hash_hmac('sha256', $passwordHash, $challenge);
-    $log .= ", server generate response: " . $_POST['response'];
 }
 $expectedResponse = hash_hmac('sha256', $row['passhash'], $challenge);
-$log .= ", expectedResponse: $expectedResponse";
 if (!hash_equals($expectedResponse, $_POST["response"])) {
-    do_log("$log, !hash_equals");
+    do_log("$log, password verification failed");
     login_failedlogins();
 }
-\Nexus\Database\NexusDB::cache_del(get_challenge_key($username));
 do_log("$log, login successful");
 $userRep = new \App\Repositories\UserRepository();
 $userRep->saveLoginLog($row['id'], $ip, 'Web', true);
@@ -110,8 +117,14 @@ else
     logincookie($row["id"], $row['auth_key']);
 }
 
-if (!empty($_POST["returnto"]))
-	nexus_redirect($_POST['returnto']);
-else
-	nexus_redirect("index.php");
+$returnto = $_POST['returnto'] ?? '';
+if (!is_string($returnto)
+    || strlen($returnto) > 2048
+    || !preg_match('/\A[a-zA-Z0-9_.\/?&=%+#-]*\z/', $returnto)
+    || str_starts_with($returnto, '//')
+    || parse_url($returnto, PHP_URL_SCHEME) !== null
+) {
+    $returnto = '';
+}
+nexus_redirect($returnto !== '' ? $returnto : "index.php");
 ?>

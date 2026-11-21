@@ -724,13 +724,13 @@ tr_small($lang_usercp['row_funbox'],"<input type=checkbox name=showfb".($CURUSER
 			break;
 		case "security":
 			if ($type == 'confirm') {
-				$response = $_POST['response'];
-				if (!$response){
+				$response = $_POST['response'] ?? null;
+				if (!is_string($response) || $response === ''){
 					stderr($lang_usercp['std_error'], $lang_usercp['std_enter_old_password'].goback(), 0);
 				}
                 //验证旧密码
-                $challenge = \Nexus\Database\NexusDB::cache_get(get_challenge_key($userInfo->username));
-                if (empty($challenge)) {
+                $challenge = $_POST['challenge'] ?? null;
+                if (!is_string($challenge) || !consume_auth_challenge($challenge, $userInfo->username)) {
                     stderr($lang_usercp['std_error'], "expired!".goback(), 0);
                 }
                 $expectedResponse = hash_hmac('sha256', $userInfo->passhash, $challenge);
@@ -872,7 +872,6 @@ EOD;
 				if ($privacyupdated == 1)
 				$to .= "&privacy=1";
 				clear_user_cache($CURUSER["id"]);
-                \Nexus\Database\NexusDB::cache_del(get_challenge_key($userInfo->username));
 				header("Location: $to");
 			}
 			stdhead($lang_usercp['head_control_panel'].$lang_usercp['head_security_settings']);
@@ -902,6 +901,7 @@ EOD;
 				Print("<tr><td class=\"rowhead nowrap\" valign=\"top\" align=\"right\" width=1%>".$lang_usercp['row_security_check']."</td><td valign=\"top\" align=\"left\" width=\"99%\"><input type=password class=oldpassword style=\"width: 200px\"><br /><font class=small>".$lang_usercp['text_security_check_note']."</font></td></tr>\n");
 				print('<input type=hidden name=username value="'.$CURUSER["username"].'">');
                 print('<input type=hidden name=response>');
+				print('<input type=hidden name=challenge>');
                 do_action("usercp_security_update_confirm", $_POST);
                 submit("button");
 				print("</table></form>");

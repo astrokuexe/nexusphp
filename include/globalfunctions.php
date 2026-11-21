@@ -1508,6 +1508,19 @@ function get_challenge_key(string $challenge): string {
     return "challenge:".$challenge;
 }
 
+function consume_auth_challenge(string $challenge, string $username): bool
+{
+    if (!preg_match('/\A[a-f0-9]{40}\z/i', $challenge)) {
+        return false;
+    }
+
+    $key = get_challenge_key($challenge);
+    $challengeUsername = \Nexus\Database\NexusDB::cache_get($key);
+    \Nexus\Database\NexusDB::cache_del($key);
+
+    return is_string($challengeUsername) && hash_equals($username, $challengeUsername);
+}
+
 function get_user_from_cookie(array $cookie, $isArray = true): array|\App\Models\User|null {
     $log = "Cookie authentication";
     $result = get_user_id_and_signature_from_cookie($cookie);
@@ -1689,6 +1702,7 @@ async function login(username, password, jqForm) {
         const serverSideHash = sha256(challengeData.data.secret + clientHashedPassword);
 
         const clientResponse = hmacSha256(challengeData.data.challenge, serverSideHash);
+        jqForm.find("input[name=challenge]").val(challengeData.data.challenge)
         jqForm.find("input[name=response]").val(clientResponse)
         jqForm.submit()
     } catch (error) {

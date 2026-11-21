@@ -18,13 +18,13 @@ if ($langid)
 }
 require_once(get_langfile_path("", false, $CURLANGDIR));
 cur_user_check ();
-$type = $_GET['type'] ?? '';
+$type = is_string($_GET['type'] ?? null) ? $_GET['type'] : '';
 $isPreRegisterEmailAndUsername = get_setting("system.is_invite_pre_email_and_username") == "yes";
 if ($type == 'invite')
 {
 	registration_check();
 	failedloginscheck ("Invite signup");
-	$code = $_GET["invitenumber"] ?? '';
+	$code = is_string($_GET["invitenumber"] ?? null) ? $_GET["invitenumber"] : '';
     if (empty($code)) {
         stderr($lang_signup['std_error'], "Require invitenumber");
     }
@@ -43,9 +43,9 @@ if ($type == 'invite')
 	$sq = sprintf("SELECT * FROM invites WHERE valid = %s and hash ='%s'", \App\Models\Invite::VALID_YES, mysql_real_escape_string($code));
 	$res = sql_query($sq) or sqlerr(__FILE__, __LINE__);
 	$inv = mysql_fetch_assoc($res);
-	$inviter = htmlspecialchars($inv["inviter"]);
 	if (!$inv)
 		stderr($lang_signup['std_error'], $lang_signup['std_uninvited'], 0);
+    $inviter = (int) $inv["inviter"];
 	stdhead($lang_signup['head_invite_signup']);
 }
 else {
@@ -65,10 +65,10 @@ foreach ($langs as $row)
 }
 $s .= "\n</select>";
 ?>
-<form method="get" action=<?php echo $_SERVER['PHP_SELF'] ?>>
+<form method="get" action="signup.php">
 <?php
 if ($type == 'invite')
-print("<input type=hidden name=type value='invite'><input type=hidden name=invitenumber value='".$code."'>");
+print('<input type="hidden" name="type" value="invite"><input type="hidden" name="invitenumber" value="' . htmlspecialchars($code, ENT_QUOTES, 'UTF-8') . '">');
 print("<div align=right valign=top>".$lang_signup['text_select_lang']. $s . "</div>");
 ?>
 </form>
@@ -123,7 +123,7 @@ tr($lang_signup['row_school'], "<select name=school>$schools</select>", 1);
 <tr><td class=rowhead><?php echo $lang_signup['row_verification'] ?></td><td class=rowfollow align=left><input type=checkbox name=rulesverify value=yes><?php echo $lang_signup['checkbox_read_rules'] ?><br />
 <input type=checkbox name=faqverify value=yes><?php echo $lang_signup['checkbox_read_faq'] ?> <br />
 <input type=checkbox name=ageverify value=yes><?php echo $lang_signup['checkbox_age'] ?></td></tr>
-<input type=hidden name=hash value=<?php echo $code ?? '' ?>>
+<input type="hidden" name="hash" value="<?php echo htmlspecialchars($code ?? '', ENT_QUOTES, 'UTF-8') ?>">
     <input type="hidden" name="wantpassword" />
 <tr><td class=toolbox colspan="2" align="center"><font color=red><b><?php echo $lang_signup['text_all_fields_required'] ?></b><p></font><input id="submit-btn" type=button value=<?php echo $lang_signup['submit_sign_up'] ?> style='height: 25px'></td></tr>
 </table>

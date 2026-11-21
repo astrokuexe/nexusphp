@@ -16,12 +16,12 @@ function bark($msg) {
 	exit;
 }
 
-$type = $_POST['type'] ?? '';
+$type = is_string($_POST['type'] ?? null) ? $_POST['type'] : '';
 if ($type == 'invite'){
 registration_check();
 failedloginscheck ("Invite Signup");
 if ($iv == "yes")
-	check_code ($_POST['imagehash'] ?? null, $_POST['imagestring'] ?? null,'signup.php?type=invite&invitenumber='.htmlspecialchars($_POST['hash']));
+	check_code ($_POST['imagehash'] ?? null, $_POST['imagestring'] ?? null,'signup.php?type=invite&invitenumber='.rawurlencode(is_string($_POST['hash'] ?? null) ? $_POST['hash'] : ''));
 }
 else{
 registration_check("normal");
@@ -50,7 +50,10 @@ function isproxy()
 }
 if ($type=='invite')
 {
-$inviter =  $_POST["inviter"];
+$inviter =  $_POST["inviter"] ?? null;
+if (!is_string($inviter) || !is_string($_POST["hash"] ?? null)) {
+    bark('invalid invite code');
+}
 	int_check($inviter);
 $code = unesc($_POST["hash"]);
 
@@ -73,9 +76,15 @@ $res = sql_query("SELECT username FROM users WHERE id = $inviter") or sqlerr(__F
 $arr = mysql_fetch_assoc($res);
 $invusername = $arr['username'];
 }
-if (!mkglobal("wantusername:wantpassword:email")) {
-    die();
+if (!is_string($_POST['wantusername'] ?? null)
+    || !is_string($_POST['wantpassword'] ?? null)
+    || !is_string($_POST['email'] ?? null)
+) {
+    bark($lang_takesignup['std_blank_field']);
 }
+$wantusername = unesc(trim($_POST['wantusername']));
+$wantpassword = strtolower(trim($_POST['wantpassword']));
+$email = trim($_POST['email']);
 if ($isPreRegisterEmailAndUsername && $type == 'invite' && !empty($inv["pre_register_username"]) && !empty($inv["pre_register_email"])) {
     $wantusername = $inv["pre_register_username"];
     $email = $inv["pre_register_email"];
@@ -91,21 +100,33 @@ if(EmailBanned($email))
 if(!EmailAllowed($email))
     bark($lang_takesignup['std_wrong_email_address_domains'].allowedemails());
 
-$country = $_POST["country"];
+$country = $_POST["country"] ?? null;
+if (!is_string($country)) {
+    bark($lang_takesignup['std_blank_field']);
+}
 	int_check($country);
 
 if ($showschool == 'yes'){
+if (!is_string($_POST["school"] ?? null)) {
+    bark($lang_takesignup['std_blank_field']);
+}
 $school = $_POST["school"];
 int_check($school);
 }
 
-$gender =  htmlspecialchars(trim($_POST["gender"]));
+$gender = $_POST["gender"] ?? null;
+if (!is_string($gender)) {
+    bark($lang_takesignup['std_invalid_gender']);
+}
+$gender = htmlspecialchars(trim($gender), ENT_QUOTES, 'UTF-8');
 $allowed_genders = array("Male","Female","male","female");
 if (!in_array($gender, $allowed_genders, true))
 	bark($lang_takesignup['std_invalid_gender']);
 
 if (empty($wantusername) || empty($wantpassword) || empty($email) || empty($country) || empty($gender))
 	bark($lang_takesignup['std_blank_field']);
+if (!preg_match('/\A[a-f0-9]{64}\z/', $wantpassword))
+    bark($lang_takesignup['std_blank_field']);
 
 
 if (strlen($wantusername) > 12)

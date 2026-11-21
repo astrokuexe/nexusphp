@@ -134,15 +134,23 @@ class AuthenticateController extends Controller
     {
         try {
             $request->validate([
-                'username' => 'required|string',
+                'username' => 'required|string|max:255',
             ]);
-            $username = $request->username;
+            $username = trim($request->username);
             $challenge = mksecret();
-            NexusDB::cache_put(get_challenge_key($username), $challenge,300);
+            NexusDB::cache_put(get_challenge_key($challenge), $username, 300);
             $user = User::query()->where("username", $username)->first(['secret']);
+            $secret = $user?->secret;
+            if (!is_string($secret) || $secret === '') {
+                $appKey = config('app.key');
+                if (!is_string($appKey) || $appKey === '') {
+                    throw new \RuntimeException('Application key is not configured');
+                }
+                $secret = substr(hash_hmac('sha256', 'login-decoy:' . strtolower($username), $appKey), 0, 40);
+            }
             return $this->success([
                 "challenge" => $challenge,
-                'secret' => $user->secret ?? mksecret(),
+                'secret' => $secret,
             ]);
         } catch (\Exception $exception) {
             $msg = $exception->getMessage();

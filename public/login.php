@@ -23,7 +23,11 @@ cur_user_check () ;
 stdhead($lang_login['head_login']);
 
 $s = "<select name=\"sitelanguage\" onchange='submit()'>\n";
-$secret = htmlspecialchars($_GET['secret'] ?? '');
+$secret = htmlspecialchars(
+    is_string($_GET['secret'] ?? null) ? $_GET['secret'] : '',
+    ENT_QUOTES,
+    'UTF-8'
+);
 $langs = langlist("site_lang", true);
 foreach ($langs as $row)
 {
@@ -41,7 +45,7 @@ print("<div align=\"right\">".$lang_login['text_select_lang']. $s . "</div>");
 <?php
 
 unset($returnto);
-if (!empty($_GET["returnto"])) {
+if (is_string($_GET["returnto"] ?? null) && $_GET["returnto"] !== '') {
 	$returnto = $_GET["returnto"];
 	if (empty($_GET["nowarn"])) {
 		print("<h1>" . $lang_login['h1_not_logged_in']. "</h1>\n");
@@ -87,10 +91,11 @@ elseif ($securetracker == "op")
 </table>
 <?php
 if (isset($returnto)) {
-    print("<input type=\"hidden\" name=\"returnto\" value=\"" . htmlspecialchars($returnto) . "\" />\n");
+    print("<input type=\"hidden\" name=\"returnto\" value=\"" . htmlspecialchars($returnto, ENT_QUOTES, 'UTF-8') . "\" />\n");
 }
 if ($useChallengeResponseAuthentication) {
     print('<input type="hidden" name="response" />');
+    print('<input type="hidden" name="challenge" />');
 }
 \App\Repositories\UserPasskeyRepository::renderLogin();
 ?>

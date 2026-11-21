@@ -3105,7 +3105,13 @@ function logincookie($id, $authKey, $duration = 0)
     $tokenJson = json_encode($tokenData);
     $signature = hash_hmac('sha256', $tokenJson, $authKey);
     $authToken = base64_encode($tokenJson . '.' . $signature);
-	setcookie("c_secure_pass", $authToken, $expires, "/", "", isHttps(), true);
+    setcookie("c_secure_pass", $authToken, [
+        'expires' => $expires,
+        'path' => '/',
+        'secure' => isHttps(),
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
     $update = [
         'last_login' => now(),
     ];
@@ -3155,7 +3161,13 @@ function make_folder($pre, $folder_name)
 
 function logoutcookie() {
 //	setcookie("c_secure_uid", "", 0x7fffffff, "/", "", false, true);
-	setcookie("c_secure_pass", "", 0x7fffffff, "/", "", isHttps(), true);
+    setcookie("c_secure_pass", "", [
+        'expires' => time() - 3600,
+        'path' => '/',
+        'secure' => isHttps(),
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
 // setcookie("c_secure_ssl", "", 0x7fffffff, "/", "", false, true);
 //	setcookie("c_secure_tracker_ssl", "", 0x7fffffff, "/", "", false, true);
 //	setcookie("c_secure_login", "", 0x7fffffff, "/", "", false, true);
