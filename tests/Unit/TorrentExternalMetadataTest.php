@@ -44,9 +44,13 @@ class TorrentExternalMetadataTest extends TestCase
         ]);
 
         $metadata = app(TorrentExternalMetadata::class)->fetchForTorrent([
-            'url' => 'https://myanimelist.net/anime/5114',
-            'description' => '<a href="https://anidb.net/anime/12345">AniDB entry</a>',
-            'pt_gen' => json_encode(['reference' => 'https://lostmediawiki.com/wiki/Example_Lost_Media']),
+            'pt_gen' => json_encode([
+                'scraper_import' => [
+                    'myanimelist' => 'https://myanimelist.net/anime/5114',
+                    'anidb' => 'https://anidb.net/anime/12345',
+                    'lost_media_wiki' => 'https://lostmediawiki.com/wiki/Example_Lost_Media',
+                ],
+            ]),
         ]);
 
         $this->assertSame('Fullmetal Alchemist: Brotherhood', $metadata['myanimelist'][0]['title']);

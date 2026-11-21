@@ -295,6 +295,7 @@ function bonusarray($option = 0){
 }
 
 $allBonus = bonusarray();
+$isBonusAdmin = get_user_class() >= \App\Models\User::CLASS_ADMINISTRATOR;
 $lockSeconds = 10;
 $lockText = sprintf($lang_mybonus['lock_text'], $lockSeconds);
 if ($bonus_tweak == "disable" || $bonus_tweak == "disablesave")
@@ -341,7 +342,7 @@ if (isset($do)) {
 }
 	stdhead($CURUSER['username'] . $lang_mybonus['head_karma_page']);
 
-	$bonus = number_format($CURUSER['seedbonus'], 1);
+	$bonus = $isBonusAdmin ? '∞' : number_format($CURUSER['seedbonus'], 1);
 if (!$action) {
 	print("<table align=\"center\" width=\"97%\" border=\"1\" cellspacing=\"0\" cellpadding=\"3\">\n");
 	print("<tr><td class=\"colhead\" colspan=\"4\" align=\"center\"><font class=\"big\">".$SITENAME.$lang_mybonus['text_karma_system']."</font></td></tr>\n");
@@ -362,6 +363,7 @@ print("<tr><td class=\"colhead\" align=\"center\">".$lang_mybonus['col_option'].
 for ($i=0; $i < count($allBonus); $i++)
 {
 	$bonusarray = $allBonus[$i];
+    $bonusCost = $isBonusAdmin ? 0 : $bonusarray['points'];
 	if (
 	    ($bonusarray['art'] == 'gift_1' && $bonusgift_bonus == 'no')
         || ($bonusarray['art'] == 'noad' && ($enablead_advertisement == 'no' || $bonusnoad_advertisement == 'no'))
@@ -376,7 +378,7 @@ for ($i=0; $i < count($allBonus); $i++)
 	print("<td class=\"rowhead_center\"><input type=\"hidden\" name=\"option\" value=\"".$i."\" /><b>".($i + 1)."</b></td>");
 	if ($bonusarray['art'] == 'title'){ //for Custom Title!
 	    $otheroption_title = "<input type=\"text\" name=\"title\" style=\"width: 200px\" maxlength=\"30\" />";
-	    print("<td class=\"rowfollow\" align='left'><h1>".$bonusarray['name']."</h1>".$bonusarray['description']."<br /><br />".$lang_mybonus['text_enter_titile'].$otheroption_title.$lang_mybonus['text_click_exchange']."</td><td class=\"rowfollow\" align='center'>".number_format($bonusarray['points'])."</td>");
+	    print("<td class=\"rowfollow\" align='left'><h1>".$bonusarray['name']."</h1>".$bonusarray['description']."<br /><br />".$lang_mybonus['text_enter_titile'].$otheroption_title.$lang_mybonus['text_click_exchange']."</td><td class=\"rowfollow\" align='center'>".number_format($bonusCost)."</td>");
 	}
 	elseif ($bonusarray['art'] == 'gift_1'){  //for Give A Karma Gift
 			$otheroption = "<table width=\"100%\"><tr><td class=\"embedded\"><b>".$lang_mybonus['text_username']."</b><input type=\"text\" name=\"username\" style=\"width: 200px\" maxlength=\"24\" /></td><td class=\"embedded\"><b>".$lang_mybonus['text_to_be_given']."</b><input type=\"number\" name=\"bonusgift\" id=\"giftcustom\" style='width: 80px' min='100' />".$lang_mybonus['text_karma_points']."</td></tr><tr><td class=\"embedded\" colspan=\"2\"><b>".$lang_mybonus['text_message']."</b><input type=\"text\" name=\"message\" style=\"width: 400px\" maxlength=\"100\" /></td></tr></table>";
@@ -387,10 +389,10 @@ for ($i=0; $i < count($allBonus); $i++)
 			print("<td class=\"rowfollow\" align='left'><h1>".$bonusarray['name']."</h1>".$bonusarray['description']."<br /><br />".$lang_mybonus['text_select_receiver_ratio']."<br />$otheroption</td><td class=\"rowfollow nowrap\" align='center'>".$lang_mybonus['text_min']."1,000<br />".$lang_mybonus['text_max']."50,000</td>");
 	}
 	else {  //for VIP or Upload
-		print("<td class=\"rowfollow\" align='left'><h1>".$bonusarray['name']."</h1>".$bonusarray['description']."</td><td class=\"rowfollow\" align='center'>".number_format($bonusarray['points'])."</td>");
+		print("<td class=\"rowfollow\" align='left'><h1>".$bonusarray['name']."</h1>".$bonusarray['description']."</td><td class=\"rowfollow\" align='center'>".number_format($bonusCost)."</td>");
 	}
 
-	if($CURUSER['seedbonus'] >= $bonusarray['points'])
+	if($CURUSER['seedbonus'] >= $bonusCost)
 	{
 	    $permission = 'sendinvite';
 		if ($bonusarray['art'] == 'gift_1'){
@@ -446,7 +448,7 @@ for ($i=0; $i < count($allBonus); $i++)
 				else $ratio = 0;
 			}
 			else $ratio = $ratiolimit_bonus + 1; //Ratio always above limit
-			if ($ratiolimit_bonus > 0 && $ratio > $ratiolimit_bonus){
+			if (!$isBonusAdmin && $ratiolimit_bonus > 0 && $ratio > $ratiolimit_bonus){
 				print("<td class=\"rowfollow\" align=\"center\"><input type=\"submit\" name=\"submit\" value=\"".$lang_mybonus['text_ratio_too_high']."\" disabled=\"disabled\" /></td>");
 			}
 			else print("<td class=\"rowfollow\" align=\"center\"><input type=\"submit\" name=\"submit\" value=\"".$lang_mybonus['submit_exchange']."\" /></td>");
@@ -566,7 +568,7 @@ if ($prolinkpoint_bonus > 0)
 if ($funboxreward_bonus > 0)
 	print("<li>".$lang_mybonus['text_funbox_reward']."</li>");
 print($lang_mybonus['text_howto_get_karma_four']);
-if ($ratiolimit_bonus > 0)
+if ($ratiolimit_bonus > 0 && !$isBonusAdmin)
 	print("<li>".$lang_mybonus['text_user_with_ratio_above'].$ratiolimit_bonus.$lang_mybonus['text_and_uploaded_amount_above'].$dlamountlimit_bonus.$lang_mybonus['text_cannot_exchange_uploading']."</li>");
 print($lang_mybonus['text_howto_get_karma_five'].$uploadtorrent_bonus.$lang_mybonus['text_point'].add_s($uploadtorrent_bonus).$lang_mybonus['text_howto_get_karma_six']);
 ?>
@@ -582,9 +584,9 @@ if ($action == "exchange") {
 	}
 	$option = intval($_POST["option"] ?? 0);
 	$bonusarray = $allBonus[$option];
-	$points = $bonusarray['points'];
 	$userid = $CURUSER['id'];
 	$art = $bonusarray['art'];
+	$points = $isBonusAdmin ? 0 : $bonusarray['points'];
 
 //	$bonuscomment = $CURUSER['bonuscomment'];
 	$seedbonus=$CURUSER['seedbonus']-$points;
@@ -609,7 +611,7 @@ if ($action == "exchange") {
             } else {
                 $ratio = 0;
             }
-			if ($ratiolimit_bonus > 0 && $ratio > $ratiolimit_bonus)
+			if (!$isBonusAdmin && $ratiolimit_bonus > 0 && $ratio > $ratiolimit_bonus)
 				die($lang_mybonus['text_cheat_alert']);
 			else {
 			$upload = $CURUSER['uploaded'];
@@ -708,13 +710,28 @@ if ($action == "exchange") {
 				stdfoot();
 				die();
 			}
-			if($CURUSER['seedbonus'] >= $points) {
+			if($isBonusAdmin || $CURUSER['seedbonus'] >= $points) {
 				$points2= number_format($points,1);
 //				$bonuscomment = date("Y-m-d") . " - " .$points2. " Points as charity to users with ratio below ".htmlspecialchars(trim($ratiocharity)).".\n " .htmlspecialchars($bonuscomment);
 				$charityReceiverCount = get_row_count("users", "WHERE enabled='yes' AND 10737418240 < downloaded AND $ratiocharity > uploaded/downloaded");
 				if ($charityReceiverCount) {
 //					sql_query("UPDATE users SET seedbonus = seedbonus - $points, charity = charity + $points, bonuscomment = ".sqlesc($bonuscomment)." WHERE id = ".sqlesc($userid)) or sqlerr(__FILE__, __LINE__);
-                    $bonusRep->consumeUserBonus($CURUSER['id'], $points, \App\Models\BonusLogs::BUSINESS_TYPE_GIFT_TO_LOW_SHARE_RATIO, $points. " Points as charity to users with ratio below ".htmlspecialchars(trim($ratiocharity)).".", ['charity' => \Nexus\Database\NexusDB::raw("charity + $points"), ]);
+                    $charityComment = $points. " Points as charity to users with ratio below ".htmlspecialchars(trim($ratiocharity)).".";
+                    if ($isBonusAdmin) {
+                        \Nexus\Database\NexusDB::transaction(function () use ($CURUSER, $points, $charityComment) {
+                            \App\Models\User::query()->where('id', $CURUSER['id'])->increment('charity', $points);
+                            \App\Models\BonusLogs::add(
+                                $CURUSER['id'],
+                                $CURUSER['seedbonus'],
+                                0,
+                                $CURUSER['seedbonus'],
+                                $charityComment . " (admin bonus not deducted)",
+                                \App\Models\BonusLogs::BUSINESS_TYPE_GIFT_TO_LOW_SHARE_RATIO
+                            );
+                        });
+                    } else {
+                        $bonusRep->consumeUserBonus($CURUSER['id'], $points, \App\Models\BonusLogs::BUSINESS_TYPE_GIFT_TO_LOW_SHARE_RATIO, $charityComment, ['charity' => \Nexus\Database\NexusDB::raw("charity + $points"), ]);
+                    }
 					$charityPerUser = $points/$charityReceiverCount;
 					sql_query("UPDATE users SET seedbonus = seedbonus + $charityPerUser WHERE enabled='yes' AND 10737418240 < downloaded AND $ratiocharity > uploaded/downloaded") or sqlerr(__FILE__, __LINE__);
 					nexus_redirect('mybonus.php?do=charity');
@@ -749,7 +766,7 @@ if ($action == "exchange") {
 				stdfoot();
 				die();
 			}
-			if($CURUSER['seedbonus'] >= $points) {
+			if($isBonusAdmin || $CURUSER['seedbonus'] >= $points) {
 				$points2= number_format($points,1);
 //				$bonuscomment = date("Y-m-d") . " - " .$points2. " Points as gift to ".htmlspecialchars(trim($_POST["username"])).".\n " .htmlspecialchars($bonuscomment);
 
@@ -768,7 +785,18 @@ if ($action == "exchange") {
 				}
 
 //				sql_query("UPDATE users SET seedbonus = seedbonus - $points, bonuscomment = ".sqlesc($bonuscomment)." WHERE id = ".sqlesc($userid)) or sqlerr(__FILE__, __LINE__);
-                $bonusRep->consumeUserBonus($CURUSER['id'], $points, \App\Models\BonusLogs::BUSINESS_TYPE_GIFT_TO_SOMEONE, $points2 . " Points as gift to ".htmlspecialchars(trim($_POST["username"])));
+                if ($isBonusAdmin) {
+                    \App\Models\BonusLogs::add(
+                        $CURUSER['id'],
+                        $CURUSER['seedbonus'],
+                        0,
+                        $CURUSER['seedbonus'],
+                        $points2 . " Points as gift to ".htmlspecialchars(trim($_POST["username"]))." (admin bonus not deducted)",
+                        \App\Models\BonusLogs::BUSINESS_TYPE_GIFT_TO_SOMEONE
+                    );
+                } else {
+                    $bonusRep->consumeUserBonus($CURUSER['id'], $points, \App\Models\BonusLogs::BUSINESS_TYPE_GIFT_TO_SOMEONE, $points2 . " Points as gift to ".htmlspecialchars(trim($_POST["username"])));
+                }
 				sql_query("UPDATE users SET seedbonus = seedbonus + $aftertaxpoint WHERE id = ".sqlesc($useridgift));
                 \App\Models\BonusLogs::add($useridgift, $userseedbonus, $aftertaxpoint, $userseedbonus + $aftertaxpoint, " + " .$points2receiver. " Points (after tax) as a gift from ".($CURUSER["username"]), \App\Models\BonusLogs::BUSINESS_TYPE_RECEIVE_GIFT);
 

@@ -33,7 +33,7 @@ class BonusRepository extends BaseRepository
         if ($hitAndRun->status == HitAndRun::STATUS_PARDONED) {
             throw new \LogicException("H&R: $hitAndRunId already pardoned.");
         }
-        $requireBonus = BonusLogs::getBonusForCancelHitAndRun();
+        $requireBonus = $user->class >= User::CLASS_ADMINISTRATOR ? 0 : BonusLogs::getBonusForCancelHitAndRun();
         NexusDB::transaction(function () use ($user, $hitAndRun, $requireBonus) {
             $comment = nexus_trans('hr.bonus_cancel_comment', [
                 'bonus' => $requireBonus,
@@ -154,7 +154,7 @@ class BonusRepository extends BaseRepository
     public function consumeToBuyAttendanceCard($uid): bool
     {
         $user = User::query()->findOrFail($uid);
-        $requireBonus = BonusLogs::getBonusForBuyAttendanceCard();
+        $requireBonus = $user->class >= User::CLASS_ADMINISTRATOR ? 0 : BonusLogs::getBonusForBuyAttendanceCard();
         NexusDB::transaction(function () use ($user, $requireBonus) {
             $comment = nexus_trans('bonus.comment_buy_attendance_card', [
                 'bonus' => $requireBonus,
@@ -171,11 +171,12 @@ class BonusRepository extends BaseRepository
 
     public function consumeToBuyTemporaryInvite($uid, $count = 1): bool
     {
-        $requireBonus = BonusLogs::getBonusForBuyTemporaryInvite();
-        if ($requireBonus <= 0) {
+        $configuredBonus = BonusLogs::getBonusForBuyTemporaryInvite();
+        if ($configuredBonus <= 0) {
             throw new \RuntimeException("Temporary invite require bonus <= 0 !");
         }
         $user = User::query()->findOrFail($uid);
+        $requireBonus = $user->class >= User::CLASS_ADMINISTRATOR ? 0 : $configuredBonus;
         $toolRep = new ToolRepository();
         $hashArr = $toolRep->generateUniqueInviteHash([], $count, $count);
         NexusDB::transaction(function () use ($user, $requireBonus, $hashArr) {
@@ -206,7 +207,7 @@ class BonusRepository extends BaseRepository
     public function consumeToBuyRainbowId($uid, $duration = 30): bool
     {
         $user = User::query()->findOrFail($uid);
-        $requireBonus = BonusLogs::getBonusForBuyRainbowId();
+        $requireBonus = $user->class >= User::CLASS_ADMINISTRATOR ? 0 : BonusLogs::getBonusForBuyRainbowId();
         NexusDB::transaction(function () use ($user, $requireBonus, $duration) {
             $comment = nexus_trans('bonus.comment_buy_rainbow_id', [
                 'bonus' => $requireBonus,
@@ -229,7 +230,7 @@ class BonusRepository extends BaseRepository
     public function consumeToBuyChangeUsernameCard($uid): bool
     {
         $user = User::query()->findOrFail($uid);
-        $requireBonus = BonusLogs::getBonusForBuyChangeUsernameCard();
+        $requireBonus = $user->class >= User::CLASS_ADMINISTRATOR ? 0 : BonusLogs::getBonusForBuyChangeUsernameCard();
         if (UserMeta::query()->where('uid', $uid)->where('meta_key', UserMeta::META_KEY_CHANGE_USERNAME)->exists()) {
             throw new NexusException("user already has change username card");
         }

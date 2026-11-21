@@ -42,7 +42,34 @@ else {
 	$anon = $CURUSER["username"];
 }
 
+$scraperSources = ['imdb', 'myanimelist', 'anidb', 'lost_media_wiki'];
+$selectedScraperSources = $_POST['scraper_import_sources'] ?? [];
+$scraperImportLinks = [];
+if (is_array($selectedScraperSources) && is_array($_POST['scraper_import'] ?? null)) {
+	foreach ($scraperSources as $source) {
+		$link = $_POST['scraper_import'][$source] ?? '';
+		if (in_array($source, $selectedScraperSources, true) && is_string($link) && trim($link) !== '') {
+			$scraperImportLinks[$source] = trim($link);
+		}
+	}
+}
+
 $url = parse_imdb_id($_POST['url'] ?? '');
+if (!$url && isset($scraperImportLinks['imdb'])) {
+	$url = parse_imdb_id($scraperImportLinks['imdb']);
+}
+$ptGen = $_POST['pt_gen'] ?? '';
+if (!is_string($ptGen)) {
+	$ptGen = '';
+}
+if ($scraperImportLinks) {
+	$ptGenData = json_decode($ptGen, true);
+	if (!is_array($ptGenData)) {
+		$ptGenData = $ptGen !== '' ? ['__link' => $ptGen] : [];
+	}
+	$ptGenData['scraper_import'] = $scraperImportLinks;
+	$ptGen = nexus_json_encode($ptGenData);
+}
 
 $nfo = '';
 if ($enablenfo_main=='yes'){
@@ -327,7 +354,7 @@ $extra = [
     'descr' => $descr,
     'media_info' => $_POST['technical_info'] ?? '',
     'nfo' => $nfo,
-    'pt_gen' => $_POST['pt_gen'] ?? '',
+    'pt_gen' => $ptGen,
 ];
 if (isset($_POST['hr'][$catmod]) && isset(\App\Models\Torrent::$hrStatus[$_POST['hr'][$catmod]]) && user_can('torrent_hr')) {
     $insert['hr'] = $_POST['hr'][$catmod];
