@@ -39,6 +39,7 @@ $lang_settings = array
 	'head_smtp_settings' => "SMTP Settings",
 	'row_mail_function_type' => "Type of PHP Mail function",
 	'head_security_settings' => "Security Settings",
+	'row_registration_mode' => "Settings Login, Signup and Apply",
 	'row_enable_ssl' => "Use SSL (Web)",
 	'row_enable_ssl_tracker' => "Use SSL (Tracker)",
 	'text_optional' => "Optional (selectable by users)",

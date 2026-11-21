@@ -19,6 +19,8 @@ if ($langid)
 require_once(get_langfile_path("", false, $CURLANGDIR));
 cur_user_check ();
 $type = is_string($_GET['type'] ?? null) ? $_GET['type'] : '';
+$registrationMode = $type === 'apply' ? 'apply' : 'signup';
+registration_mode_check($registrationMode);
 $isPreRegisterEmailAndUsername = get_setting("system.is_invite_pre_email_and_username") == "yes";
 if ($type == 'invite')
 {
@@ -49,7 +51,7 @@ if ($type == 'invite')
 	stdhead($lang_signup['head_invite_signup']);
 }
 else {
-	registration_check("normal");
+	registration_check('mode');
 	failedloginscheck ("Signup");
 	stdhead($lang_signup['head_signup']);
 }
@@ -74,7 +76,13 @@ print("<div align=right valign=top>".$lang_signup['text_select_lang']. $s . "</d
 </form>
 <p>
 <form method="post" action="takesignup.php" id="signup-form">
-<?php if ($type == 'invite') print("<input type=\"hidden\" name=\"inviter\" value=\"".$inviter."\"><input type=hidden name=type value='invite'>");?>
+<?php
+if ($type == 'invite') {
+	print("<input type=\"hidden\" name=\"inviter\" value=\"".$inviter."\"><input type=hidden name=type value='invite'>");
+} elseif ($type === 'apply') {
+	print('<input type="hidden" name="type" value="apply">');
+}
+?>
 <table border="1" cellspacing="0" cellpadding="10">
 <?php
 print("<tr><td class=text align=center colspan=2>".$lang_signup['text_cookies_note']."</td></tr>");
@@ -100,6 +108,9 @@ if ($isPreRegisterEmailAndUsername && !empty($inv["pre_register_email"])) {
 <?php
 show_image_code ();
 ?>
+<?php if ($type === 'apply') { ?>
+<tr><td class="rowhead">Reason for applying</td><td class="rowfollow" align="left"><textarea name="application_details" rows="6" required maxlength="5000" style="width: min(100%, 500px); box-sizing: border-box"></textarea></td></tr>
+<?php } ?>
 <tr><td class=rowhead><?php echo $lang_signup['row_email_address'] ?></td><td class=rowfollow align=left><?php echo $emailInput?>
 <table width=250 border=0 cellspacing=0 cellpadding=0><tr><td class=embedded><font class=small><?php echo ($restrictemaildomain == 'yes' ? $lang_signup['text_email_note'].allowedemails() : "") ?></td></tr>
 </font></td></tr></table>
@@ -128,7 +139,7 @@ tr($lang_signup['row_school'], "<select name=school>$schools</select>", 1);
 <tr><td class=toolbox colspan="2" align="center"><font color=red><b><?php echo $lang_signup['text_all_fields_required'] ?></b><p></font><input id="submit-btn" type=button value=<?php echo $lang_signup['submit_sign_up'] ?> style='height: 25px'></td></tr>
 </table>
 </form>
-
+<p><a href="login.php">Already registered? Login</a></p>
 <?php
 render_password_hash_js("signup-form", "wantpassword", "wantpassword", true,"passagain", "wantusername");
 stdfoot();

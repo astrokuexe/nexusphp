@@ -1755,6 +1755,19 @@ function registration_check($type = "invitesystem", $maxuserscheck = true, $ipch
 	return true;
 }
 
+function get_registration_mode(): string
+{
+	$mode = get_setting('security.registration_mode', 'signup');
+	return in_array($mode, ['login', 'signup', 'apply'], true) ? $mode : 'signup';
+}
+
+function registration_mode_check(string $mode): void
+{
+	if (get_registration_mode() !== $mode) {
+		stderr('Registration unavailable', 'This registration method is currently unavailable.', 0, true);
+	}
+}
+
 function random_str($length="6")
 {
 	$set = array("A","B","C","D","E","F","G","H","P","R","M","N","1","2","3","4","5","6","7","8","9");
@@ -2642,7 +2655,12 @@ if ($enabledonation == 'yes'){?>
 <table class="mainouter" width="<?php echo CONTENT_WIDTH ?>" cellspacing="0" cellpadding="5" align="center">
 	<tr><td id="nav_block" class="text" align="center">
 <?php if (!$CURUSER) { ?>
-			<a href="login.php"><font class="big"><b><?php echo $lang_functions['text_login'] ?></b></font></a> / <a href="signup.php"><font class="big"><b><?php echo $lang_functions['text_signup'] ?></b></font></a>
+			<a href="login.php"><font class="big"><b><?php echo $lang_functions['text_login'] ?></b></font></a>
+<?php if (get_registration_mode() === 'signup') { ?>
+			 / <a href="signup.php"><font class="big"><b><?php echo $lang_functions['text_signup'] ?></b></font></a>
+<?php } elseif (get_registration_mode() === 'apply') { ?>
+			 / <a href="apply.php"><font class="big"><b>Apply</b></font></a>
+<?php } ?>
 <?php }
 else {
 	begin_main_frame();
@@ -2720,6 +2738,7 @@ else {
                 <a href="task.php">[<?php echo nexus_trans('exam.type_task')?>]</a>
                 <font class = 'color_invite'><?php echo $lang_functions['text_invite'] ?></font>[<a href="invite.php?id=<?php echo $CURUSER['id']?>"><?php echo $lang_functions['text_send'] ?></a>]: <?php echo sprintf('%s(%s)', $CURUSER['invites'], \App\Models\Invite::query()->where('inviter', $CURUSER['id'])->where('invitee', '')->where('expired_at', '>', now())->count())?>
                 <?php if(get_user_class() >= \App\Models\User::getAccessAdminClassMin()) printf('[<a href="%s" target="_blank">%s</a>]', nexus_env('FILAMENT_PATH', 'nexusphp'), $lang_functions['text_management_system'])?>
+                <?php if (user_can('staffmem')) { ?> [<a href="accounts.php">Account</a>]<?php } ?>
                 <?php if (get_user_class() >= UC_MODERATOR) { ?>[<a href="hitandrun.php"><?php echo nexus_trans('hr.menu') ?></a>]<?php } ?>
                 <br />
 	            <font class="color_ratio"><?php echo $lang_functions['text_ratio'] ?></font> <?php echo $ratio?>

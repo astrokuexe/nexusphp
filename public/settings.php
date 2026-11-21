@@ -199,12 +199,15 @@ elseif ($action == 'savesettings_security') 	// save security
 	$validConfig = array(
 		'securelogin', 'securetracker', 'https_announce_url','iv','maxip','maxloginattempts','changeemail','cheaterdet','nodetect',
 		'guest_visit_type', 'guest_visit_value_static_page', 'guest_visit_value_custom_content', 'guest_visit_value_redirect',
-		'login_type', 'login_secret_lifetime', 'use_challenge_response_authentication',
+		'login_type', 'login_secret_lifetime', 'use_challenge_response_authentication', 'registration_mode',
 	);
 	GetVar($validConfig);
 	$SECURITY = [];
 	foreach($validConfig as $config) {
 		$SECURITY[$config] = $$config ?? null;
+	}
+	if (!in_array($SECURITY['registration_mode'], ['login', 'signup', 'apply'], true)) {
+		$SECURITY['registration_mode'] = get_setting('security.registration_mode', 'signup');
 	}
 	if ($_POST['login_secret_regenerate'] == 'yes') {
 		$minute = intval($_POST['login_secret_lifetime']);
@@ -377,6 +380,22 @@ elseif ($action == 'securitysettings')	//security settings
 	tr($lang_settings['row_max_login_attemps'],"<input type='text' style=\"width: 300px\" name=maxloginattempts value='" . ($SECURITY["maxloginattempts"] ? $SECURITY["maxloginattempts"] : "7")."'> ".$lang_settings['text_max_login_attemps_note'], 1);
 
     yesorno($lang_settings['row_use_challenge_response_authentication'], 'use_challenge_response_authentication', $SECURITY["use_challenge_response_authentication"], $lang_settings['text_use_challenge_response_authentication_note']);
+	$registrationMode = $SECURITY['registration_mode'] ?? 'signup';
+	$registrationModes = [
+		'login' => 'Login only',
+		'signup' => 'Signup',
+		'apply' => 'Apply',
+	];
+	$registrationModeInput = '';
+	foreach ($registrationModes as $value => $label) {
+		$registrationModeInput .= sprintf(
+			'<label style="margin-right: 16px"><input type="radio" name="registration_mode" value="%s"%s> %s</label>',
+			$value,
+			$registrationMode === $value ? ' checked' : '',
+			$label
+		);
+	}
+	tr($lang_settings['row_registration_mode'] ?? 'Settings Login, Signup and Apply', $registrationModeInput, 1);
 	$guestVisitTypeRadio = '<label><input type="radio" name="guest_visit_type" value="normal"' . (empty($SECURITY['guest_visit_type']) || $SECURITY['guest_visit_type'] == 'normal' ? ' checked' : '') . ' onclick="document.getElementById(\'tbody_static_page\').style.display=\'none\';document.getElementById(\'tbody_custom_content\').style.display=\'none\';document.getElementById(\'tbody_redirect\').style.display=\'none\';">' . $lang_settings['text_guest_visit_type_normal'] . '</label>';
 	$guestVisitTypeRadio .= '<br/><label><input type="radio" name="guest_visit_type" value="static_page"' . ($SECURITY['guest_visit_type'] == 'static_page' ? ' checked' : '') . ' onclick="document.getElementById(\'tbody_static_page\').style.display=\'table-row-group\';document.getElementById(\'tbody_custom_content\').style.display=\'none\';document.getElementById(\'tbody_redirect\').style.display=\'none\';">' . $lang_settings['text_guest_visit_type_static_page'] . '</label>';
 	$guestVisitTypeRadio .= '<br/><label><input type="radio" name="guest_visit_type" value="custom_content"' . ($SECURITY['guest_visit_type'] == 'custom_content' ? ' checked' : '') . ' onclick="document.getElementById(\'tbody_static_page\').style.display=\'none\';document.getElementById(\'tbody_custom_content\').style.display=\'table-row-group\';document.getElementById(\'tbody_redirect\').style.display=\'none\';">' . $lang_settings['text_guest_visit_type_custom_content'] . '</label>';

@@ -11,6 +11,12 @@ if ($type == "adminactivate")
 	stdmsg($lang_ok['std_account_activated'],
 	$lang_ok['account_activated_note']);
 }
+elseif ($type == "approvalpending")
+{
+	stdhead($lang_ok['head_user_signup']);
+	stdmsg('Application received', 'Your account request is awaiting staff approval.');
+	stdfoot();
+}
 elseif ($type == "inviter")
 {
 	stdhead($lang_ok['head_user_signup']);

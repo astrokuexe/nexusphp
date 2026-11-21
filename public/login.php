@@ -112,20 +112,21 @@ foreach ($oauthProviders as $oauthProvider) {
 if (!empty($items)) {
     echo sprintf("<p>%s: %s</p>", $lang_login['other_methods'], implode("&nbsp;&nbsp;", $items));
 }
-if (\App\Models\Setting::getIsComplainEnabled()) {
-    echo sprintf('<p>[<b><a href="complains.php">%s</a></b>]</p>', $lang_login['text_complain']);
+?>
+<?php
+$registrationMode = get_registration_mode();
+if ($registrationMode === 'signup') {
+    print('<p><a href="signup.php">Create an account</a></p>');
+} elseif ($registrationMode === 'apply') {
+    print('<p><a href="apply.php">Apply for an account</a></p>');
 }
 ?>
-<p><?php echo $lang_login['p_no_account_signup']?></p>
+<p><a class="btn" href="donations.php">Donate / Order VIP account</a></p>
+<p><a href="donations.php?report=1">Already donated? Send your TXID</a></p>
 <?php
-if ($smtptype != 'none'){
+print('<p>' . $lang_login['p_forget_pass_recover'] . '</p>');
+if ($registrationMode !== 'login' && $showhelpbox_main != 'no'){
 ?>
-<p><?php echo $lang_login['p_forget_pass_recover']?></p>
-<p><?php echo $lang_login['p_account_banned']?></p>
-<p><?php echo $lang_login['p_resend_confirm']?></p>
-<?php
-}
-if ($showhelpbox_main != 'no'){?>
 <table width="100%" class="main" border="0" cellspacing="0" cellpadding="0"><tr><td class="embedded">
 <h2><?php echo $lang_login['text_helpbox'] ?><font class="small"> - <?php echo $lang_login['text_helpbox_note'] ?><font id= "waittime" color="red"></font></h2>
 <?php

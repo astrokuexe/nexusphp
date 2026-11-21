@@ -17,6 +17,19 @@ function bark($msg) {
 }
 
 $type = is_string($_POST['type'] ?? null) ? $_POST['type'] : '';
+registration_mode_check($type === 'apply' ? 'apply' : 'signup');
+$requestType = $type === 'apply' ? 'apply' : ($type === 'invite' ? null : 'signup');
+$applicationDetails = null;
+if ($requestType === 'apply') {
+    $applicationDetails = $_POST['application_details'] ?? null;
+    if (!is_string($applicationDetails) || trim($applicationDetails) === '') {
+        bark('Please provide a reason for applying.');
+    }
+    $applicationDetails = trim($applicationDetails);
+    if (mb_strlen($applicationDetails) > 5000) {
+        bark('The application details are too long.');
+    }
+}
 if ($type == 'invite'){
 registration_check();
 failedloginscheck ("Invite Signup");
@@ -24,7 +37,7 @@ if ($iv == "yes")
 	check_code ($_POST['imagehash'] ?? null, $_POST['imagestring'] ?? null,'signup.php?type=invite&invitenumber='.rawurlencode(is_string($_POST['hash'] ?? null) ? $_POST['hash'] : ''));
 }
 else{
-registration_check("normal");
+registration_check('mode');
 failedloginscheck ("Signup");
 if ($iv == "yes")
 	check_code ($_POST['imagehash'] ?? null, $_POST['imagestring'] ?? null);
@@ -192,6 +205,16 @@ if(mysql_num_rows($res_check_user) == 1)
 
 $ret = sql_query("INSERT INTO users (username, passhash, passkey, secret, auth_key, editsecret, email, country, gender, status, class, invites, ".($type == 'invite' ? "invited_by," : "")." added, last_access, lang, stylesheet".($showschool == 'yes' ? ", school" : "").", uploaded) VALUES (" . $wantusername . "," . $wantpasshash . "," . sqlesc($passkey) . "," . $secret . "," . $authKey. "," . $editsecret . "," . $email . "," . $country . "," . $gender . ", 'pending', ".$defaultclass_class.",". $invite_count .", ".($type == 'invite' ? "'$inviter'," : "") ." '". date("Y-m-d H:i:s") ."' , " . " '". date("Y-m-d H:i:s") ."' , ".$sitelangid . ",".$defcss.($showschool == 'yes' ? ",".$school : "").",".($iniupload_main > 0 ? $iniupload_main : 0).")") or sqlerr(__FILE__, __LINE__);
 $id = mysql_insert_id();
+if ($requestType !== null) {
+    \Illuminate\Support\Facades\DB::table('account_requests')->insert([
+        'user_id' => $id,
+        'type' => $requestType,
+        'details' => $applicationDetails,
+        'status' => 'pending',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+}
 $userInfo = \App\Models\User::query()->find($id, \App\Models\User::$commonFields);
 fire_event("user_created", $userInfo);
 $tmpInviteCount = get_setting('main.tmp_invite_count');
@@ -267,7 +290,10 @@ if ($type == 'invite')
     $Cache->delete_value('user_'.$inviter.'_inbox_count');
 }
 
-if ($verification == 'admin'){
+if ($requestType !== null) {
+	header("Location: " . get_protocol_prefix() . "$BASEURL/ok.php?type=approvalpending");
+}
+elseif ($verification == 'admin'){
 	if ($type == 'invite')
 	header("Location: " . get_protocol_prefix() . "$BASEURL/ok.php?type=inviter");
 	else

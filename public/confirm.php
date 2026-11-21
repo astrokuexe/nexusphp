@@ -20,6 +20,14 @@ if ($row["status"] != "pending") {
 	exit();
 }
 
+$hasAccountRequest = \Illuminate\Support\Facades\DB::table('account_requests')
+    ->where('user_id', $id)
+    ->exists();
+if ($hasAccountRequest) {
+	header("Location: ok.php?type=approvalpending");
+	exit();
+}
+
 $confirm_sec = hash_pad($row["secret"]);
 if ($confirm_md5 != md5($confirm_sec))
 	httperr();
