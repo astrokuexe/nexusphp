@@ -426,6 +426,7 @@ if ($showstats_main == "yes")
 <table width="100%"><tr><td class="text" align="center">
 <table width="60%" class="main" border="1" cellspacing="0" cellpadding="10">
 <?php
+	if (get_user_class() >= UC_MODERATOR) {
 	$Cache->new_page('stats_users', 3000, true);
 	if (!$Cache->get_page()){
 	$Cache->add_whole_row();
@@ -442,32 +443,32 @@ if ($showstats_main == "yes")
 ?>
 <tr>
 <?php
-	twotd($lang_index['row_users_active_today'],$totalonlinetoday);
-	twotd($lang_index['row_users_active_this_week'],$totalonlineweek);
+	twotd("<a href=\"userstats.php?type=active_today\">".$lang_index['row_users_active_today']."</a>",$totalonlinetoday);
+	twotd("<a href=\"userstats.php?type=active_week\">".$lang_index['row_users_active_this_week']."</a>",$totalonlineweek);
 ?>
 </tr>
 <tr>
 <?php
-	twotd($lang_index['row_registered_users'],$registered." / ".number_format($maxusers));
-	twotd($lang_index['row_unconfirmed_users'],$unverified);
+	twotd("<a href=\"userstats.php?type=registered\">".$lang_index['row_registered_users']."</a>",$registered." / ".number_format($maxusers));
+	twotd("<a href=\"userstats.php?type=unconfirmed\">".$lang_index['row_unconfirmed_users']."</a>",$unverified);
 ?>
 </tr>
 <tr>
 <?php
-	twotd(get_user_class_name(UC_VIP,false,false,true),$VIP);
-	twotd($lang_index['row_donors']." <img class=\"star\" src=\"pic/trans.gif\" alt=\"Donor\" />",$donated);
+	twotd("<a href=\"userstats.php?type=vip\">".get_user_class_name(UC_VIP,false,false,true)."</a>",$VIP);
+	twotd("<a href=\"userstats.php?type=donors\">".$lang_index['row_donors']."</a> <img class=\"star\" src=\"pic/trans.gif\" alt=\"Donor\" />",$donated);
 ?>
 </tr>
 <tr>
 <?php
-	twotd($lang_index['row_warned_users']." <img class=\"warned\" src=\"pic/trans.gif\" alt=\"warned\" />",$warned);
-	twotd($lang_index['row_banned_users']." <img class=\"disabled\" src=\"pic/trans.gif\" alt=\"disabled\" />",$disabled);
+	twotd("<a href=\"userstats.php?type=warned\">".$lang_index['row_warned_users']."</a> <img class=\"warned\" src=\"pic/trans.gif\" alt=\"warned\" />",$warned);
+	twotd("<a href=\"userstats.php?type=disabled\">".$lang_index['row_banned_users']."</a> <img class=\"disabled\" src=\"pic/trans.gif\" alt=\"disabled\" />",$disabled);
 ?>
 </tr>
 <tr>
 <?php
-	twotd($lang_index['row_male_users'],$registered_male);
-	twotd($lang_index['row_female_users'],$registered_female);
+	twotd("<a href=\"userstats.php?type=male\">".$lang_index['row_male_users']."</a>",$registered_male);
+	twotd("<a href=\"userstats.php?type=female\">".$lang_index['row_female_users']."</a>",$registered_female);
 ?>
 </tr>
 <?php
@@ -477,6 +478,9 @@ if ($showstats_main == "yes")
 	echo $Cache->next_row();
 ?>
 <tr><td colspan="4" class="rowhead">&nbsp;</td></tr>
+<?php
+	}
+?>
 <?php
 	$Cache->new_page('stats_torrents', 1800, true);
 	if (!$Cache->get_page()){
@@ -542,6 +546,9 @@ if ($showstats_main == "yes")
 	}
 	echo $Cache->next_row();
 ?>
+<?php
+	if (get_user_class() >= UC_MODERATOR) {
+?>
 <tr><td colspan="4" class="rowhead">&nbsp;</td></tr>
 <?php
 	$Cache->new_page('stats_classes', 4535, true);
@@ -560,32 +567,32 @@ if ($showstats_main == "yes")
 ?>
 <tr>
 <?php
-	twotd(get_user_class_name(UC_PEASANT,false,false,true)." <img class=\"leechwarned\" src=\"pic/trans.gif\" alt=\"leechwarned\" />",$peasants);
-	twotd(get_user_class_name(UC_USER,false,false,true),$users);
+	twotd("<a href=\"userstats.php?type=class_".UC_PEASANT."\">".get_user_class_name(UC_PEASANT,false,false,true)."</a> <img class=\"leechwarned\" src=\"pic/trans.gif\" alt=\"leechwarned\" />",$peasants);
+	twotd("<a href=\"userstats.php?type=class_".UC_USER."\">".get_user_class_name(UC_USER,false,false,true)."</a>",$users);
 ?>
 </tr>
 <tr>
 <?php
-	twotd(get_user_class_name(UC_POWER_USER,false,false,true),$powerusers);
-	twotd(get_user_class_name(UC_ELITE_USER,false,false,true),$eliteusers);
+	twotd("<a href=\"userstats.php?type=class_".UC_POWER_USER."\">".get_user_class_name(UC_POWER_USER,false,false,true)."</a>",$powerusers);
+	twotd("<a href=\"userstats.php?type=class_".UC_ELITE_USER."\">".get_user_class_name(UC_ELITE_USER,false,false,true)."</a>",$eliteusers);
 ?>
 </tr>
 <tr>
 <?php
-	twotd(get_user_class_name(UC_CRAZY_USER,false,false,true),$crazyusers);
-	twotd(get_user_class_name(UC_INSANE_USER,false,false,true),$insaneusers);
+	twotd("<a href=\"userstats.php?type=class_".UC_CRAZY_USER."\">".get_user_class_name(UC_CRAZY_USER,false,false,true)."</a>",$crazyusers);
+	twotd("<a href=\"userstats.php?type=class_".UC_INSANE_USER."\">".get_user_class_name(UC_INSANE_USER,false,false,true)."</a>",$insaneusers);
 ?>
 </tr>
 <tr>
 <?php
-	twotd(get_user_class_name(UC_VETERAN_USER,false,false,true),$veteranusers);
-	twotd(get_user_class_name(UC_EXTREME_USER,false,false,true),$extremeusers);
+	twotd("<a href=\"userstats.php?type=class_".UC_VETERAN_USER."\">".get_user_class_name(UC_VETERAN_USER,false,false,true)."</a>",$veteranusers);
+	twotd("<a href=\"userstats.php?type=class_".UC_EXTREME_USER."\">".get_user_class_name(UC_EXTREME_USER,false,false,true)."</a>",$extremeusers);
 ?>
 </tr>
 <tr>
 <?php
-	twotd(get_user_class_name(UC_ULTIMATE_USER,false,false,true),$ultimateusers);
-	twotd(get_user_class_name(UC_NEXUS_MASTER,false,false,true),$nexusmasters);
+	twotd("<a href=\"userstats.php?type=class_".UC_ULTIMATE_USER."\">".get_user_class_name(UC_ULTIMATE_USER,false,false,true)."</a>",$ultimateusers);
+	twotd("<a href=\"userstats.php?type=class_".UC_NEXUS_MASTER."\">".get_user_class_name(UC_NEXUS_MASTER,false,false,true)."</a>",$nexusmasters);
 ?>
 </tr>
 <?php
@@ -593,6 +600,9 @@ if ($showstats_main == "yes")
 	$Cache->cache_page();
 	}
 	echo $Cache->next_row();
+?>
+<?php
+	}
 ?>
 </table>
 </td></tr></table>
