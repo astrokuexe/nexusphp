@@ -98,10 +98,13 @@ if (!$descr)
 bark($lang_takeupload['std_blank_description']);
 
 $catid = intval($_POST["type"] ?? 0);
-$catmod = get_single_value("categories","mode","WHERE id=".sqlesc($catid));
-if (!$catmod) {
+$category = \App\Models\Category::query()
+    ->whereKey($catid)
+    ->first(['id', 'mode']);
+if (!$category || !\App\Models\Category::isUploadable($catid, (int) $category->mode)) {
     bark('Invalid category');
 }
+$catmod = (int) $category->mode;
 $sourceid = intval($_POST["source_sel"][$catmod] ?? 0);
 $mediumid = intval($_POST["medium_sel"][$catmod] ?? 0);
 $codecid = intval($_POST["codec_sel"][$catmod] ?? 0);

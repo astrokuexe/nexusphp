@@ -119,18 +119,18 @@ stdhead($lang_upload['head_upload']);
 				if ($allowtorrents){
 					$disablespecial = " onchange=\"disableother('browsecat','specialcat')\"";
 					$s = "<select name=\"type\" id=\"browsecat\" data-mode='$browsecatmode' ".($allowtwosec ? $disablespecial : "").">\n<option value=\"0\">".$lang_upload['select_choose_one']."</option>\n";
-					$cats = genrelist($browsecatmode);
+					$cats = \App\Models\Category::listUploadOptions((int) $browsecatmode);
 					foreach ($cats as $row)
-						$s .= "<option value=\"" . $row["id"] . "\">" . htmlspecialchars($row["name"]) . "</option>\n";
+                        $s .= "<option value=\"" . (int) $row->id . "\">" . htmlspecialchars(($row->parent ? $row->parent->name . ' / ' : '') . $row->name, ENT_QUOTES, 'UTF-8') . "</option>\n";
 					$s .= "</select>\n";
 				}
 				else $s = "";
 				if ($allowspecial){
 					$disablebrowse = " onchange=\"disableother('specialcat','browsecat')\"";
 					$s2 = "<select name=\"type\" id=\"specialcat\" data-mode='$specialcatmode' ".$disablebrowse.">\n<option value=\"0\">".$lang_upload['select_choose_one']."</option>\n";
-					$cats2 = genrelist($specialcatmode);
+					$cats2 = \App\Models\Category::listUploadOptions((int) $specialcatmode);
 					foreach ($cats2 as $row)
-						$s2 .= "<option value=\"" . $row["id"] . "\">" . htmlspecialchars($row["name"]) . "</option>\n";
+                        $s2 .= "<option value=\"" . (int) $row->id . "\">" . htmlspecialchars(($row->parent ? $row->parent->name . ' / ' : '') . $row->name, ENT_QUOTES, 'UTF-8') . "</option>\n";
 					$s2 .= "</select>\n";
 				}
 				else $s2 = "";

@@ -94,6 +94,8 @@ bark($lang_takeedit['std_missing_form_data']);
 if (!$name || !$descr)
 bark($lang_takeedit['std_missing_form_data']);
 $newcatmode = get_single_value("categories","mode","WHERE id=".sqlesc($catid));
+if (!\App\Models\Category::isUploadable($catid, (int) $newcatmode) && $catid != (int) $row['category'])
+	bark($lang_takeedit['std_missing_form_data']);
 if ($enablespecial == 'yes' && user_can('movetorrent'))
 	$allowmove = true; //enable moving torrent to other section
 else $allowmove = false;

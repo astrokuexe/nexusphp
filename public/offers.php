@@ -42,9 +42,11 @@ if (isset($_GET['add_offer']) && $_GET["add_offer"]){
 	"<table width=100% border=0 cellspacing=0 cellpadding=5><tr><td class=colhead align=center colspan=2>".$lang_offers['text_offers_open_to_all']."</td></tr>\n");
 
 	$s = "<select name=type>\n<option value=0>".$lang_offers['select_type_select']."</option>\n";
-	$cats = genrelist($browsecatmode);
-	foreach ($cats as $row)
-	$s .= "<option value=".$row["id"].">" . htmlspecialchars($row["name"]) . "</option>\n";
+	$cats = \App\Models\Category::listUploadOptions($browsecatmode);
+	foreach ($cats as $row) {
+		$categoryName = $row->parent ? $row->parent->name . " / " . $row->name : $row->name;
+		$s .= "<option value=".$row->id.">" . htmlspecialchars($categoryName) . "</option>\n";
+	}
 	$s .= "</select>\n";
 	print("<tr><td class=rowhead align=right><b>".$lang_offers['row_type']."<font color=red>*</font></b></td><td class=rowfollow align=left> $s</td></tr>".
 	"<tr><td class=rowhead align=right><b>".$lang_offers['row_title']."<font color=red>*</font></b></td><td class=rowfollow align=left><input type=text name=name style=\"width: 99%;\" />".
@@ -74,7 +76,7 @@ if (isset($_GET['new_offer']) && $_GET["new_offer"]){
 	bark($lang_offers['std_must_enter_name']);
 
 	$cat = intval($_POST["type"] ?? 0);
-	if (!is_valid_id($cat))
+	if (!is_valid_id($cat) || !\App\Models\Category::isUploadable($cat, $browsecatmode))
 	bark($lang_offers['std_must_select_category']);
 
 	$descrmain = unesc($_POST["body"]);
@@ -374,10 +376,12 @@ if (isset($_GET["edit_offer"]) && $_GET["edit_offer"]) {
 	$body = htmlspecialchars(unesc($num["descr"]));
 	$s2 = "<select name=\"category\">\n";
 
-	$cats = genrelist($browsecatmode);
+	$cats = \App\Models\Category::listUploadOptions($browsecatmode, (int) $id2);
 
-	foreach ($cats as $row)
-	$s2 .= "<option value=\"" . $row["id"] . "\" ".($row['id'] == $id2 ? " selected=\"selected\"" : "").">" . htmlspecialchars($row["name"]) . "</option>\n";
+	foreach ($cats as $row) {
+		$categoryName = $row->parent ? $row->parent->name . " / " . $row->name : $row->name;
+		$s2 .= "<option value=\"" . $row->id . "\" ".($row->id == $id2 ? " selected=\"selected\"" : "").">" . htmlspecialchars($categoryName) . "</option>\n";
+	}
 	$s2 .= "</select>\n";
 
 	stdhead($lang_offers['head_edit_offer'].": $s");
@@ -406,8 +410,10 @@ if (isset($_GET["take_off_edit"]) && $_GET["take_off_edit"]){
 
 	$id = intval($_GET["id"] ?? 0);
 
-	$res = sql_query("SELECT userid FROM offers WHERE id = $id") or sqlerr(__FILE__, __LINE__);
+	$res = sql_query("SELECT userid, category FROM offers WHERE id = $id") or sqlerr(__FILE__, __LINE__);
 	$num = mysql_fetch_array($res);
+	if (!$num)
+		bark($lang_offers['text_nothing_found']);
 
 	if ($CURUSER['id'] != $num['userid'] && !user_can('offermanage'))
 	stderr($lang_offers['std_error'], $lang_offers['std_access_denied']);
@@ -427,7 +433,7 @@ if (isset($_GET["take_off_edit"]) && $_GET["take_off_edit"]){
 	if (!$descr)
 	bark($lang_offers['std_must_enter_description']);
 	$cat = intval($_POST["category"] ?? 0);
-	if (!is_valid_id($cat))
+	if (!is_valid_id($cat) || (!\App\Models\Category::isUploadable($cat, $browsecatmode) && $cat != (int) $num['category']))
 	bark($lang_offers['std_must_select_category']);
 
 	$name = sqlesc($name);
@@ -726,18 +732,15 @@ else if ($sort == "v_res")
 
 
 
-if ($offerorid <> NULL)
-{
-	if (($categ <> NULL) && ($categ <> 0))
-	$categ = "WHERE offers.category = " . $categ . " AND offers.userid = " . $offerorid;
-	else
-	$categ = "WHERE offers.userid = " . $offerorid;
+$offerConditions = [];
+if ($categ > 0) {
+	$categoryIds = \App\Models\Category::expandMenuFilterIds([$categ], (int) $browsecatmode);
+	$offerConditions[] = "offers.category IN (" . implode(",", array_map("intval", $categoryIds)) . ")";
 }
-
-else if ($categ == 0)
-$categ = '';
-else
-$categ = "WHERE offers.category = " . $categ;
+if ($offerorid > 0) {
+	$offerConditions[] = "offers.userid = " . (int) $offerorid;
+}
+$categ = $offerConditions ? "WHERE " . implode(" AND ", $offerConditions) : "";
 
 $res = sql_query("SELECT count(offers.id) FROM offers inner join categories on offers.category = categories.id inner join users on offers.userid = users.id  $categ $search") or sqlerr(__FILE__, __LINE__);
 $row = mysql_fetch_array($res);
@@ -775,11 +778,12 @@ if (user_can('addoffer'))
 print("<div align=\"center\" style=\"margin-bottom: 8px;\"><a href=\"?add_offer=1\">".
 "<b>".$lang_offers['text_add_offer']."</b></a></div>");
 print("<div align=\"center\"><form method=\"get\" action=\"?\">".$lang_offers['text_search_offers']."&nbsp;&nbsp;<input type=\"text\" id=\"specialboxg\" name=\"search\" />&nbsp;&nbsp;");
-$cats = genrelist($browsecatmode);
+$cats = \App\Models\Category::listFilterOptions($browsecatmode);
 $catdropdown = "";
 foreach ($cats as $cat) {
-	$catdropdown .= "<option value=\"" . $cat["id"] . "\"";
-	$catdropdown .= ">" . htmlspecialchars($cat["name"]) . "</option>\n";
+	$categoryName = $cat->parent ? $cat->parent->name . " / " . $cat->name : $cat->name;
+	$catdropdown .= "<option value=\"" . $cat->id . "\"";
+	$catdropdown .= ">" . htmlspecialchars($categoryName) . "</option>\n";
 }
 print("<select name=\"category\"><option value=\"0\">".$lang_offers['select_show_all']."</option>".$catdropdown."</select>&nbsp;&nbsp;<input type=\"submit\" class=\"btn\" value=\"".$lang_offers['submit_search']."\" /></form></div>");
 end_frame();

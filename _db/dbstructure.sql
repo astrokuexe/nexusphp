@@ -338,12 +338,14 @@ CREATE TABLE IF NOT EXISTS `bookmarks` (
 CREATE TABLE IF NOT EXISTS `categories` (
   `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
   `mode` tinyint(3) unsigned NOT NULL DEFAULT '1',
+  `parent_id` smallint(5) unsigned DEFAULT NULL,
   `class_name` varchar(255) NOT NULL DEFAULT '',
   `name` varchar(30) NOT NULL,
   `image` varchar(255) NOT NULL,
   `sort_index` smallint(5) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`id`),
-  KEY `mode_sort` (`mode`,`sort_index`)
+  KEY `mode_sort` (`mode`,`sort_index`),
+  KEY `mode_parent_id` (`mode`,`parent_id`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=utf8 AUTO_INCREMENT=410 ;
 
 --

@@ -1,6 +1,27 @@
 <?php
 
 return [
+    'menu' => 'H&R',
+    'staff_title' => 'Hit and Run review',
+    'staff_empty' => 'No active H&R records found.',
+    'staff_user' => 'User',
+    'staff_torrent' => 'Torrent',
+    'staff_status' => 'Status',
+    'staff_seed_time' => 'Seed time required',
+    'staff_inspect_time' => 'Time left to inspect',
+    'staff_created_at' => 'Created',
+    'staff_actions' => 'Actions',
+    'action_suspend' => 'Suspend',
+    'action_delete' => 'Delete H&R',
+    'action_allow' => 'Allow / Pardon',
+    'action_confirm_suspend' => 'Suspend this user account?',
+    'action_confirm_delete' => 'Delete this H&R record?',
+    'action_confirm_allow' => 'Pardon this H&R record?',
+    'action_success' => 'H&R action completed.',
+    'error' => 'H&R action error',
+    'invalid_request' => 'Invalid request.',
+    'permission_denied' => 'You are not allowed to perform this action.',
+
     'status_' . \App\Models\HitAndRun::STATUS_INSPECTING => 'Inspecting',
     'status_' . \App\Models\HitAndRun::STATUS_REACHED => 'Reached',
     'status_' . \App\Models\HitAndRun::STATUS_UNREACHED => 'Unreached',

@@ -654,6 +654,7 @@ if (empty($wherecatina) && !(in_array($inclbookmarked, [1, 2]) && $allsec == 1))
     //require limit in some category
     $wherecatina = $allCategoryId;
 }
+$wherecatina = \App\Models\Category::expandMenuFilterIds($wherecatina, (int) $sectiontype);
 if (count($wherecatina) > 1)
 $wherecatin = implode(",",$wherecatina);
 elseif (count($wherecatina) == 1)
@@ -1025,6 +1026,32 @@ else stdhead($lang_torrents['head_special']);
 print("<table width=\"97%\" class=\"main\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr><td class=\"embedded\">");
 
 displayHotAndClassic();
+if (in_array(nexus()->getScript(), ['torrents', 'special'], true)) {
+    $menuGroups = \App\Models\Category::listMenuGroups((int) $sectiontype);
+    if ($menuGroups->isNotEmpty()) {
+        echo '<div class="torrent-category-menus" style="margin: 8px 0">';
+        foreach ($menuGroups as $menu) {
+            $menuId = (int) $menu->id;
+            printf(
+                '<div style="margin: 4px 0"><a class="btn" href="?cat=%d"%s><strong>%s</strong></a>&nbsp;',
+                $menuId,
+                $category_get === $menuId ? ' aria-current="page"' : '',
+                htmlspecialchars($menu->name, ENT_QUOTES, 'UTF-8')
+            );
+            foreach ($menu->children as $child) {
+                $childId = (int) $child->id;
+                printf(
+                    '<a class="btn" href="?cat=%d"%s>%s</a>&nbsp;',
+                    $childId,
+                    $category_get === $childId ? ' aria-current="page"' : '',
+                    htmlspecialchars($child->name, ENT_QUOTES, 'UTF-8')
+                );
+            }
+            echo '</div>';
+        }
+        echo '</div>';
+    }
+}
 $searchBoxRightTdStyle = 'padding: 1px;padding-left: 10px;white-space: nowrap';
 if ($allsec != 1 || $enablespecial != 'yes'){ //do not print searchbox if showing bookmarked torrents from all sections;
 ?>

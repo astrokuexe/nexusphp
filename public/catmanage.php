@@ -621,6 +621,9 @@ elseif($action == 'del')
 	$dbtablename=return_category_db_table_name($type);
 	$res = sql_query ("SELECT * FROM ".$dbtablename." WHERE id = ".sqlesc($id)." LIMIT 1");
 	if ($row = mysql_fetch_array($res)){
+		if ($type == 'category' && \App\Models\Category::query()->where('parent_id', $id)->exists()) {
+			stderr($lang_catmanage['std_error'], "Remove submenu categories before deleting their parent menu.");
+		}
 		sql_query("DELETE FROM ".$dbtablename." WHERE id = ".sqlesc($row['id'])) or sqlerr(__FILE__, __LINE__);
 		if(in_array($type, $validsubcattype))
 			$Cache->delete_value($dbtablename.'_list');

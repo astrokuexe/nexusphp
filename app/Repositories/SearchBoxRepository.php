@@ -239,6 +239,9 @@ class SearchBoxRepository extends BaseRepository
         if ($exists) {
             throw new \RuntimeException("There are torrents that belong to this category and cannot be deleted!");
         }
+        if (Category::query()->whereIn('parent_id', $idArr)->exists()) {
+            throw new \RuntimeException("Remove submenu categories before deleting their parent menu.");
+        }
         return Category::query()->whereIn('id', $idArr)->delete();
     }
 
