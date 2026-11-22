@@ -66,26 +66,9 @@ function inviteMenu ($selected = "invitee") {
         $sendBtnText = $exception->getMessage();
         $disabled = ' disabled';
     }
-    if ($CURUSER['id'] == $id) {
+    if ($CURUSER['id'] == $id && $selected !== 'generated') {
         print("<div style='display:flex;gap:8px;justify-content:flex-end;margin-top:8px'>");
-        if ($selected == 'generated') {
-            $inviteOptions = inviteGenerationOptions($CURUSER['id']);
-            $generationDisabled = $disabled;
-            if ($inviteOptions === '') {
-                $inviteOptions = '<option value="">'.htmlspecialchars($lang_invite['text_no_invites_to_generate'], ENT_QUOTES, 'UTF-8').'</option>';
-                $generationDisabled = ' disabled';
-            }
-            print("<form method=post action='takeinvite.php?type=generate'>".
-                "<input type=hidden name=csrf_token value='".htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8')."'>".
-                "<select name=hash ".$generationDisabled.">".$inviteOptions."</select>".
-                "<input type=submit ".$generationDisabled." value='".htmlspecialchars($lang_invite['text_generate_invite_link'], ENT_QUOTES, 'UTF-8')."'>".
-                "</form>");
-            if ($disabled !== '') {
-                print("<div>".htmlspecialchars($sendBtnText, ENT_QUOTES, 'UTF-8')."</div>");
-            }
-        } else {
-            print("<form method=post action=invite.php?id=".htmlspecialchars($id)."&type=new><input type=submit ".$disabled." value='".htmlspecialchars($sendBtnText, ENT_QUOTES, 'UTF-8')."'></form>");
-        }
+        print("<form method=post action=invite.php?id=".htmlspecialchars($id)."&type=new><input type=submit ".$disabled." value='".htmlspecialchars($sendBtnText, ENT_QUOTES, 'UTF-8')."'></form>");
         print("</div></div>");
     }
     end_main_frame();
@@ -178,6 +161,29 @@ if ($type == 'new'){
 
 } else {
     inviteMenu($menuSelected);
+    if ($menuSelected === 'generated' && $CURUSER['id'] == $id) {
+        try {
+            $userRep->getInviteBtnText($CURUSER['id']);
+            $generationDisabled = '';
+            $generationMessage = '';
+        } catch (\Exception $exception) {
+            $generationDisabled = ' disabled';
+            $generationMessage = htmlspecialchars($exception->getMessage(), ENT_QUOTES, 'UTF-8');
+        }
+        $inviteOptions = inviteGenerationOptions($CURUSER['id']);
+        if ($inviteOptions === '') {
+            $inviteOptions = '<option value="">'.htmlspecialchars($lang_invite['text_no_invites_to_generate'], ENT_QUOTES, 'UTF-8').'</option>';
+            $generationDisabled = ' disabled';
+        }
+        print("<div style='text-align:center;margin:16px 0'>".
+            "<form method=post action='takeinvite.php?type=generate' style='display:inline-flex;gap:8px;align-items:center'>".
+            "<input type=hidden name=csrf_token value='".htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8')."'>".
+            "<select name=hash ".$generationDisabled.">".$inviteOptions."</select>".
+            "<button type=submit class=btn ".$generationDisabled.">".htmlspecialchars($lang_invite['text_generate_invite_link'], ENT_QUOTES, 'UTF-8')."</button>".
+            "</form>".
+            ($generationMessage !== '' ? "<div class=text>".$generationMessage."</div>" : "").
+            "</div>");
+    }
     if ($menuSelected == 'invitee') {
         $whereStr = "u.invited_by = " . sqlesc($id);
         if (!empty($_GET['status'])) {
