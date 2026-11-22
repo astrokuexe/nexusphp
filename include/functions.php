@@ -5290,15 +5290,10 @@ function get_post_row($postid)
 
 function get_country_row($id)
 {
-	global $Cache;
-	if (!$row = $Cache->get_value('country_'.$id.'_content')){
+	return \Nexus\Database\NexusDB::remember('country_'.$id.'_content', 86400, function () use ($id) {
 		$res = sql_query("SELECT * FROM countries WHERE id=".sqlesc($id)." LIMIT 1") or sqlerr(__FILE__,__LINE__);
-		$row = mysql_fetch_array($res);
-		$Cache->cache_value('country_'.$id.'_content', $row, 86400);
-	}
-	if (!$row)
-		return false;
-	else return $row;
+		return mysql_fetch_array($res);
+	});
 }
 
 function get_downloadspeed_row($id)
