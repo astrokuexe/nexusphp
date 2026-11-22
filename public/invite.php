@@ -68,9 +68,23 @@ function inviteMenu ($selected = "invitee") {
     }
     if ($CURUSER['id'] == $id) {
         print("<div style='display:flex;gap:8px;justify-content:flex-end;margin-top:8px'>");
-        print("<form method=post action=invite.php?id=".htmlspecialchars($id)."&type=new><input type=submit ".$disabled." value='".htmlspecialchars($sendBtnText, ENT_QUOTES, 'UTF-8')."'></form>");
-
-        if ($selected != 'generated') {
+        if ($selected == 'generated') {
+            $inviteOptions = inviteGenerationOptions($CURUSER['id']);
+            $generationDisabled = $disabled;
+            if ($inviteOptions === '') {
+                $inviteOptions = '<option value="">'.htmlspecialchars($lang_invite['text_no_invites_to_generate'], ENT_QUOTES, 'UTF-8').'</option>';
+                $generationDisabled = ' disabled';
+            }
+            print("<form method=post action='takeinvite.php?type=generate'>".
+                "<input type=hidden name=csrf_token value='".htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8')."'>".
+                "<select name=hash ".$generationDisabled.">".$inviteOptions."</select>".
+                "<input type=submit ".$generationDisabled." value='".htmlspecialchars($lang_invite['text_generate_invite_link'], ENT_QUOTES, 'UTF-8')."'>".
+                "</form>");
+            if ($disabled !== '') {
+                print("<div>".htmlspecialchars($sendBtnText, ENT_QUOTES, 'UTF-8')."</div>");
+            }
+        } else {
+            print("<form method=post action=invite.php?id=".htmlspecialchars($id)."&type=new><input type=submit ".$disabled." value='".htmlspecialchars($sendBtnText, ENT_QUOTES, 'UTF-8')."'></form>");
             $inviteOptions = inviteGenerationOptions($CURUSER['id']);
             if ($inviteOptions !== '') {
                 print("<form method=post action='takeinvite.php?type=generate'>".
@@ -327,35 +341,13 @@ JS;
         print("</table>");
         print("</td></tr></table>" . ($pagertop ?? ''));
     } elseif (in_array($menuSelected, ['sent', 'tmp', 'generated'])) {
-        if ($menuSelected == 'generated' && $CURUSER['id'] == $id) {
-            $generationDisabled = '';
-            $generationError = '';
-            try {
-                $userRep->getInviteBtnText($CURUSER['id']);
-            } catch (\Exception $exception) {
-                $generationDisabled = ' disabled';
-                $generationError = $exception->getMessage();
-            }
-            $inviteOptions = inviteGenerationOptions($CURUSER['id']);
-            if ($inviteOptions === '') {
-                $inviteOptions = '<option value="">'.htmlspecialchars($lang_invite['text_no_invites_to_generate'], ENT_QUOTES, 'UTF-8').'</option>';
-                $generationDisabled = ' disabled';
-            }
-            print("<div style='margin:12px 0;padding:10px;border:1px solid #ccc'>".
-                "<form method=post action='takeinvite.php?type=generate'>".
-                "<input type=hidden name=csrf_token value='".htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8')."'>".
-                "<select name=hash ".$generationDisabled.">".$inviteOptions."</select> ".
-                "<input type=submit ".$generationDisabled." value='".htmlspecialchars($lang_invite['text_generate_invite_link'], ENT_QUOTES, 'UTF-8')."'>".
-                ($generationError !== '' ? "<div>".htmlspecialchars($generationError, ENT_QUOTES, 'UTF-8')."</div>" : "").
-                "</form></div>");
-        }
         $whereStr = "inviter = " . sqlesc($id);
         if ($menuSelected == 'sent') {
             $whereStr .= " and invitee != ''";
         } elseif ($menuSelected == 'tmp') {
-            $whereStr .= " and invitee = '' and expired_at is not null and (time_invited is null or time_invited = 0)";
+            $whereStr .= " and invitee = '' and expired_at is not null and (time_invited is null or time_invited = '0000-00-00 00:00:00')";
         } else {
-            $whereStr .= " and invitee = '' and time_invited > '1970-01-01 00:00:00'";
+            $whereStr .= " and invitee = '' and time_invited is not null and time_invited != '0000-00-00 00:00:00'";
         }
         $rul = sql_query("SELECT COUNT(*) FROM invites WHERE $whereStr");
         $arre = mysql_fetch_row($rul);
