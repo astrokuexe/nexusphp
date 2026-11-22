@@ -1,7 +1,8 @@
 <?php
 require "../include/bittorrent.php";
 dbconn();
-require_once(get_langfile_path());
+require_once(get_langfile_path('index.php'));
+require_once(get_langfile_path('users.php'));
 loggedinorreturn();
 parked();
 
