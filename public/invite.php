@@ -55,9 +55,6 @@ function inviteMenu ($selected = "invitee") {
     print ("<li" . ($selected == "invitee" ? " class=selected" : "") . "><a href=\"?id=".$id."&menu=invitee\">".$lang_invite['text_invite_status']."</a></li>");
     print ("<li" . ($selected == "sent" ? " class=selected" : "") . "><a href=\"?id=".$id."&menu=sent\">".$lang_invite['text_sent_invites_status']."</a></li>");
     print ("<li" . ($selected == "tmp" ? " class=selected" : "") . "><a href=\"?id=".$id."&menu=tmp\">".$lang_invite['text_tmp_status']."</a></li>");
-    if ($CURUSER['id'] == $id) {
-        print ("<li" . ($selected == "generated" ? " class=selected" : "") . "><a href=\"?id=".$id."&menu=generated\">".$lang_invite['text_generated_invites_status']."</a></li>");
-    }
     print("</ul>");
     try {
         $sendBtnText = $userRep->getInviteBtnText($CURUSER['id']);
