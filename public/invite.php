@@ -55,6 +55,9 @@ function inviteMenu ($selected = "invitee") {
     print ("<li" . ($selected == "invitee" ? " class=selected" : "") . "><a href=\"?id=".$id."&menu=invitee\">".$lang_invite['text_invite_status']."</a></li>");
     print ("<li" . ($selected == "sent" ? " class=selected" : "") . "><a href=\"?id=".$id."&menu=sent\">".$lang_invite['text_sent_invites_status']."</a></li>");
     print ("<li" . ($selected == "tmp" ? " class=selected" : "") . "><a href=\"?id=".$id."&menu=tmp\">".$lang_invite['text_tmp_status']."</a></li>");
+    if ($CURUSER['id'] == $id) {
+        print ("<li" . ($selected == "generated" ? " class=selected" : "") . "><a href=\"?id=".$id."&menu=generated\">".$lang_invite['text_generate_invite_link']."</a></li>");
+    }
     print("</ul>");
     try {
         $sendBtnText = $userRep->getInviteBtnText($CURUSER['id']);
@@ -82,17 +85,6 @@ function inviteMenu ($selected = "invitee") {
             }
         } else {
             print("<form method=post action=invite.php?id=".htmlspecialchars($id)."&type=new><input type=submit ".$disabled." value='".htmlspecialchars($sendBtnText, ENT_QUOTES, 'UTF-8')."'></form>");
-            $inviteOptions = inviteGenerationOptions($CURUSER['id']);
-            $generationDisabled = $disabled;
-            if ($inviteOptions === '') {
-                $inviteOptions = '<option value="">'.htmlspecialchars($lang_invite['text_no_invites_to_generate'], ENT_QUOTES, 'UTF-8').'</option>';
-                $generationDisabled = ' disabled';
-            }
-            print("<form method=post action='takeinvite.php?type=generate'>".
-                "<input type=hidden name=csrf_token value='".htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8')."'>".
-                "<select name=hash ".$generationDisabled.">".$inviteOptions."</select>".
-                "<input type=submit ".$generationDisabled." value='".htmlspecialchars($lang_invite['text_generate_invite_link'], ENT_QUOTES, 'UTF-8')."'>".
-                "</form>");
         }
         print("</div></div>");
     }
