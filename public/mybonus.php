@@ -653,11 +653,19 @@ if ($action == "exchange") {
 		elseif($art == "invite") {
 			if(!user_can('buyinvite'))
 				die(get_user_class_name($buyinvite_class,false,false,true).$lang_mybonus['text_plus_only']);
-			$invites = $CURUSER['invites'];
-			$inv = $invites+$bonusarray['menge'];
-//			$bonuscomment = date("Y-m-d") . " - " .$points. " Points for invites.\n " .htmlspecialchars($bonuscomment);
-//			sql_query("UPDATE users SET invites = ".sqlesc($inv).", seedbonus = seedbonus - $points, bonuscomment=".sqlesc($bonuscomment)." WHERE id = ".sqlesc($userid)) or sqlerr(__FILE__, __LINE__);
-            $bonusRep->consumeUserBonus($CURUSER['id'], $points, \App\Models\BonusLogs::BUSINESS_TYPE_EXCHANGE_INVITE, $points. " Points for invites.", ['invites' => $inv, ]);
+            if ($isBonusAdmin) {
+                $affectedRows = \Nexus\Database\NexusDB::table('users')
+                    ->where('id', $CURUSER['id'])
+                    ->increment('invites', $bonusarray['menge']);
+                if ($affectedRows != 1) {
+                    throw new \RuntimeException("Increment invite count failed for user {$CURUSER['id']}.");
+                }
+                clear_user_cache($CURUSER['id'], $CURUSER['passkey']);
+            } else {
+                $invites = $CURUSER['invites'];
+                $inv = $invites + $bonusarray['menge'];
+                $bonusRep->consumeUserBonus($CURUSER['id'], $points, \App\Models\BonusLogs::BUSINESS_TYPE_EXCHANGE_INVITE, $points. " Points for invites.", ['invites' => $inv]);
+            }
             nexus_redirect('mybonus.php?do=invite');
 		}
         //=== temporary invite
