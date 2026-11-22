@@ -1577,6 +1577,16 @@ function validate_cookie_signature(string $tokenJson, string $signature, mixed $
     return hash_equals(hash_hmac('sha256', $tokenJson, $authKey), $signature);
 }
 
+function nexus_csrf_token(string $scope, string $subject = ''): string
+{
+    $appKey = function_exists('config') ? config('app.key') : null;
+    if (!is_string($appKey) || $appKey === '') {
+        throw new RuntimeException('Application key is required to generate a CSRF token.');
+    }
+
+    return hash_hmac('sha256', "nexus-csrf\0{$scope}\0{$subject}", $appKey);
+}
+
 function get_user_id_and_signature_from_cookie(array $cookie): array|null
 {
     $log = "Cookie authentication";

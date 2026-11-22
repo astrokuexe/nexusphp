@@ -140,7 +140,7 @@ if ($type == 'new'){
     if ($menuSelected === 'generated' && $CURUSER['id'] == $id) {
         print("<div style='text-align:center;margin:10px 0'>".
             "<form method=post action='takeinvite.php?type=generate'>".
-            "<input type=hidden name=csrf_token value='".htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8')."'>".
+            "<input type=hidden name=csrf_token value='".htmlspecialchars(nexus_csrf_token('invite.generate', (string)$CURUSER['id']), ENT_QUOTES, 'UTF-8')."'>".
             "<input id=generate-invite-btn type=submit class=btn value='".htmlspecialchars($lang_invite['text_generate_invite_link'], ENT_QUOTES, 'UTF-8')."' style='height:22px;padding:2px 6px;font-size:12px'>".
             "</form>".
             "</div>");
@@ -385,7 +385,7 @@ JS;
             }
         }
         print("</table>");
-        print("</td></tr></table>$pagertop");
+        print("</td></tr></table>".($pagertop ?? ''));
     }
 
 }

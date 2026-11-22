@@ -38,7 +38,7 @@ if (($_GET['type'] ?? '') == 'generate') {
         bark($lang_takeinvite['std_error']);
     }
     $csrfToken = $_POST['csrf_token'] ?? '';
-    if (!is_string($csrfToken) || !hash_equals(csrf_token(), $csrfToken)) {
+    if (!is_string($csrfToken) || !hash_equals(nexus_csrf_token('invite.generate', (string)$id), $csrfToken)) {
         bark($lang_takeinvite['std_error']);
     }
     $selectedHash = $_POST['hash'] ?? null;
