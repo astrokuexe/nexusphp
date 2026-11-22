@@ -14,7 +14,9 @@ class AddCompletedatIndexToSnatchedTable extends Migration
     public function up()
     {
         Schema::table('snatched', function (Blueprint $table) {
-            $table->index('completedat');
+            if (!\Nexus\Database\NexusDB::hasIndex('snatched', 'snatched_completedat_index')) {
+                $table->index('completedat');
+            }
         });
     }
 
@@ -26,7 +28,9 @@ class AddCompletedatIndexToSnatchedTable extends Migration
     public function down()
     {
         Schema::table('snatched', function (Blueprint $table) {
-            $table->dropIndex('snatched_completedat_index');
+            if (\Nexus\Database\NexusDB::hasIndex('snatched', 'snatched_completedat_index')) {
+                $table->dropIndex('snatched_completedat_index');
+            }
         });
     }
 }

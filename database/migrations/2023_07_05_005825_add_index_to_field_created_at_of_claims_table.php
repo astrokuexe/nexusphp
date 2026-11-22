@@ -14,7 +14,10 @@ return new class extends Migration
     public function up()
     {
         Schema::table('claims', function (Blueprint $table) {
-            $table->index("created_at", );
+            if (!\Nexus\Database\NexusDB::hasIndex('claims', 'claims_created_at_index')
+                && !\Nexus\Database\NexusDB::hasIndex('claims', 'idx_created_at')) {
+                $table->index('created_at');
+            }
         });
     }
 
@@ -26,7 +29,11 @@ return new class extends Migration
     public function down()
     {
         Schema::table('claims', function (Blueprint $table) {
-            $table->dropIndex("idx_created_at");
+            if (\Nexus\Database\NexusDB::hasIndex('claims', 'idx_created_at')) {
+                $table->dropIndex('idx_created_at');
+            } elseif (\Nexus\Database\NexusDB::hasIndex('claims', 'claims_created_at_index')) {
+                $table->dropIndex('claims_created_at_index');
+            }
         });
     }
 };

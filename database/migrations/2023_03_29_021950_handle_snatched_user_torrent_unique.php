@@ -24,17 +24,21 @@ return new class extends Migration
         $indexesToDelete = NexusDB::listColumnIndexNames($tableName, $columnNames);
 
         // 3. 执行删除操作
-        Schema::table($tableName, function (Blueprint $table) use ($indexesToDelete) {
-            foreach ($indexesToDelete as $indexName) {
+        Schema::table($tableName, function (Blueprint $table) use ($indexesToDelete, $tableName) {
+            foreach (array_unique($indexesToDelete) as $indexName) {
                 // 如果是主键，需要单独处理
                 if ($indexName === 'primary') {
                     $table->dropPrimary();
-                } else {
+                } elseif (NexusDB::hasIndex($tableName, $indexName)) {
                     $table->dropIndex($indexName);
                 }
             }
-            $table->unique(['torrentid', 'userid']);
-            $table->index('userid');
+            if (!NexusDB::hasIndex($tableName, 'snatched_torrentid_userid_unique')) {
+                $table->unique(['torrentid', 'userid']);
+            }
+            if (!NexusDB::hasIndex($tableName, 'snatched_userid_index')) {
+                $table->index('userid');
+            }
         });
 
     }

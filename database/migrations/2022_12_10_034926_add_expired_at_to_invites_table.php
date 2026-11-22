@@ -14,9 +14,16 @@ return new class extends Migration
     public function up()
     {
         Schema::table('invites', function (Blueprint $table) {
-            $table->dateTime('expired_at')->nullable(true)->index();
-            $table->dateTime('created_at')->useCurrent();
-            $table->index(['inviter'], );
+            if (!Schema::hasColumn('invites', 'expired_at')) {
+                $table->dateTime('expired_at')->nullable(true)->index();
+            }
+            if (!Schema::hasColumn('invites', 'created_at')) {
+                $table->dateTime('created_at')->useCurrent();
+            }
+            if (!\Nexus\Database\NexusDB::hasIndex('invites', 'idx_inviter')
+                && !\Nexus\Database\NexusDB::hasIndex('invites', 'invites_inviter_index')) {
+                $table->index(['inviter']);
+            }
         });
     }
 
@@ -29,7 +36,11 @@ return new class extends Migration
     {
         Schema::table('invites', function (Blueprint $table) {
             $table->dropColumn('expired_at', 'created_at');
-            $table->dropIndex('idx_inviter');
+            if (\Nexus\Database\NexusDB::hasIndex('invites', 'idx_inviter')) {
+                $table->dropIndex('idx_inviter');
+            } elseif (\Nexus\Database\NexusDB::hasIndex('invites', 'invites_inviter_index')) {
+                $table->dropIndex('invites_inviter_index');
+            }
         });
     }
 };
