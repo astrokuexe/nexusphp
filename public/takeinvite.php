@@ -35,7 +35,25 @@ if (($_GET['type'] ?? '') == 'generate') {
     if (!is_string($csrfToken) || !hash_equals(csrf_token(), $csrfToken)) {
         bark($lang_takeinvite['std_error']);
     }
-    $selectedHash = $_POST['hash'] ?? '';
+    $selectedHash = $_POST['hash'] ?? null;
+    if ($selectedHash === null || $selectedHash === '') {
+        $permanentInviteCount = (int) \App\Models\User::query()->whereKey($id)->value('invites');
+        if ($permanentInviteCount > 0) {
+            $selectedHash = 'permanent';
+        } else {
+            $selectedHash = \App\Models\Invite::query()
+                ->where('inviter', $id)
+                ->where('invitee', '')
+                ->where('valid', \App\Models\Invite::VALID_NO)
+                ->unissued()
+                ->where('expired_at', '>', now())
+                ->orderBy('expired_at')
+                ->value('hash');
+            if (!$selectedHash) {
+                bark($lang_takeinvite['std_no_invite']);
+            }
+        }
+    }
     if (!is_string($selectedHash) || $selectedHash === '') {
         bark($lang_takeinvite['std_must_select_invite']);
     }
