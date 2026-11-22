@@ -111,7 +111,7 @@ if ($CURUSER['id'] == $id && is_string($_GET['generated'] ?? null) && $_GET['gen
         ->where('expired_at', '>', now())
         ->first();
     if ($generatedInvite) {
-        $signupUrl = getSchemeAndHttpHost()."/youinvited.php/".rawurlencode($generatedInvite->hash);
+        $signupUrl = getSchemeAndHttpHost()."/getinvite.php?id=".rawurlencode($generatedInvite->hash);
         print("<div class='success'>".$lang_invite['text_generated_link_ready']."<br />".
             $lang_invite['text_invite_code'].": <code>".htmlspecialchars($generatedInvite->hash, ENT_QUOTES, 'UTF-8')."</code><br />".
             "<input type='text' readonly style='width:95%' value='".htmlspecialchars($signupUrl, ENT_QUOTES, 'UTF-8')."'></div>");
@@ -378,7 +378,7 @@ JS;
                     $isLinkUsable = $isHashValid && !$isExpired;
                     $signupLink = $isLinkUsable
                         ? sprintf(
-                            '&nbsp;<a href="youinvited.php/%s" title="%s" target="_blank" rel="noopener"><small>[%s]</small></a>',
+                            '&nbsp;<a href="getinvite.php?id=%s" title="%s" target="_blank" rel="noopener"><small>[%s]</small></a>',
                             rawurlencode($arr1['hash']),
                             htmlspecialchars($lang_invite['signup_link_help'], ENT_QUOTES, 'UTF-8'),
                             htmlspecialchars($lang_invite['signup_link'], ENT_QUOTES, 'UTF-8')

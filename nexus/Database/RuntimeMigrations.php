@@ -19,6 +19,16 @@ final class RuntimeMigrations
         );
     }
 
+    public static function ensureInviteRegistrationRequestsTable(): void
+    {
+        self::ensureSchema(
+            'invite_registration_requests',
+            null,
+            'database/migrations/2026_11_22_000001_create_invite_registration_requests_table.php',
+            'nexus:migrations:invite_registration_requests'
+        );
+    }
+
     public static function ensureCategoryParentId(): void
     {
         self::ensureSchema(
