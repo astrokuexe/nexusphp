@@ -69,8 +69,9 @@ function inviteMenu ($selected = "invitee") {
     if ($CURUSER['id'] == $id && $selected !== 'generated') {
         print("<div style='display:flex;gap:8px;justify-content:flex-end;margin-top:8px'>");
         print("<form method=post action=invite.php?id=".htmlspecialchars($id)."&type=new><input type=submit ".$disabled." value='".htmlspecialchars($sendBtnText, ENT_QUOTES, 'UTF-8')."'></form>");
-        print("</div></div>");
+        print("</div>");
     }
+    print("</div>");
     end_main_frame();
 }
 
