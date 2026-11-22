@@ -37,6 +37,7 @@ $lang_invite = array
 	'text_invitee_user' => 'Invitee user',
     'text_generated_invites_status' => 'Generated invite links',
     'text_generate_invite_link' => 'Generate invite link',
+    'text_no_invites_to_generate' => 'No invites available to generate.',
     'text_permanent_invites_available' => 'Permanent invite (%s available)',
     'text_temporary_invite_available' => 'Temporary invite (expires %s)',
     'text_no_generated_links' => 'No generated invite links.',

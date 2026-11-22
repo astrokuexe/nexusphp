@@ -13,7 +13,7 @@ if (!user_can('staffmem')) {
 }
 \Nexus\Database\RuntimeMigrations::ensureAccountRequestsTable();
 
-$types = ['signup' => 'SignUp', 'apply' => 'Apply', 'donation' => 'Donations'];
+$types = ['signup' => 'SignUp', 'apply' => 'Apply', 'donation' => 'Donations', 'invite' => 'Invite'];
 $type = is_string($_GET['type'] ?? null) ? $_GET['type'] : 'signup';
 if (!isset($types[$type])) {
     $type = 'signup';
@@ -22,6 +22,9 @@ $search = trim(is_string($_GET['q'] ?? null) ? $_GET['q'] : '');
 $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
 
 if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+    if ($type === 'invite') {
+        stderr('Invalid request', 'Invite registrations cannot be accepted or denied from this page.');
+    }
     $requestId = filter_var($_POST['request_id'] ?? null, FILTER_VALIDATE_INT);
     $decision = is_string($_POST['decision'] ?? null) ? $_POST['decision'] : '';
     $token = is_string($_POST['request_token'] ?? null) ? $_POST['request_token'] : '';
@@ -101,29 +104,55 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     exit;
 }
 
-$query = \Illuminate\Support\Facades\DB::table('account_requests')
-    ->join('users', 'users.id', '=', 'account_requests.user_id')
-    ->where('account_requests.type', $type)
-    ->where('account_requests.status', 'pending');
-if ($search !== '') {
-    $query->where(function ($builder) use ($search) {
-        $builder->where('users.username', 'like', '%' . $search . '%')
-            ->orWhere('users.email', 'like', '%' . $search . '%');
-    });
+if ($type === 'invite') {
+    $query = \Illuminate\Support\Facades\DB::table('invites')
+        ->join('users', 'users.id', '=', 'invites.invitee_register_uid')
+        ->leftJoin('users as inviters', 'inviters.id', '=', 'invites.inviter')
+        ->where('invites.invitee', '')
+        ->whereNotNull('invites.invitee_register_uid');
+    if ($search !== '') {
+        $query->where(function ($builder) use ($search) {
+            $builder->where('users.username', 'like', '%' . $search . '%')
+                ->orWhere('users.email', 'like', '%' . $search . '%');
+        });
+    }
+    $requests = $query->orderByDesc('invites.id')
+        ->select([
+            'invites.id',
+            'invites.hash',
+            'users.id as user_id',
+            'users.username',
+            'users.email',
+            'inviters.id as inviter_id',
+            'inviters.username as inviter_username',
+        ])
+        ->paginate(50)
+        ->appends(['type' => $type, 'q' => $search]);
+} else {
+    $query = \Illuminate\Support\Facades\DB::table('account_requests')
+        ->join('users', 'users.id', '=', 'account_requests.user_id')
+        ->where('account_requests.type', $type)
+        ->where('account_requests.status', 'pending');
+    if ($search !== '') {
+        $query->where(function ($builder) use ($search) {
+            $builder->where('users.username', 'like', '%' . $search . '%')
+                ->orWhere('users.email', 'like', '%' . $search . '%');
+        });
+    }
+    $requests = $query->orderBy('account_requests.id')
+        ->select([
+            'account_requests.id',
+            'account_requests.user_id',
+            'account_requests.plan',
+            'account_requests.details',
+            'account_requests.txid',
+            'account_requests.created_at',
+            'users.username',
+            'users.email',
+        ])
+        ->paginate(50)
+        ->appends(['type' => $type, 'q' => $search]);
 }
-$requests = $query->orderBy('account_requests.id')
-    ->select([
-        'account_requests.id',
-        'account_requests.user_id',
-        'account_requests.plan',
-        'account_requests.details',
-        'account_requests.txid',
-        'account_requests.created_at',
-        'users.username',
-        'users.email',
-    ])
-    ->paginate(50)
-    ->appends(['type' => $type, 'q' => $search]);
 
 stdhead('Account');
 begin_main_frame();
@@ -140,21 +169,39 @@ print('<button class="btn" type="submit">Search</button></form>');
 
 print('<table class="main" width="100%" border="1" cellspacing="0" cellpadding="5">');
 print('<tr><th>Number</th><th>Username</th><th>Email</th>');
-if ($type === 'apply') {
+if ($type === 'invite') {
+    print('<th>Invite Link</th><th>Invited By</th>');
+} elseif ($type === 'apply') {
     print('<th>Details</th>');
 } elseif ($type === 'donation') {
     print('<th>Plan</th><th>TXID</th>');
 }
-print('<th>Actions</th></tr>');
+if ($type !== 'invite') {
+    print('<th>Actions</th>');
+}
+print('</tr>');
+$rowNumber = (int) $requests->firstItem();
 foreach ($requests as $row) {
-    print('<tr><td>' . sprintf('%03d', (int) $row->id) . '</td>');
+    $number = $type === 'invite' ? $rowNumber++ : (int) $row->id;
+    print('<tr><td>' . sprintf('%03d', $number) . '</td>');
     print('<td><a href="userdetails.php?id=' . (int) $row->user_id . '">' . $escape($row->username) . '</a></td>');
     print('<td>' . $escape($row->email) . '</td>');
-    if ($type === 'apply') {
+    if ($type === 'invite') {
+        $inviteUrl = getSchemeAndHttpHost() . '/youinvited.php/' . rawurlencode($row->hash);
+        print('<td><a href="' . $escape($inviteUrl) . '" target="_blank" rel="noopener">' . $escape($inviteUrl) . '</a></td>');
+        $inviter = $row->inviter_id
+            ? '<a href="userdetails.php?id=' . (int) $row->inviter_id . '">' . $escape((string) $row->inviter_username) . '</a>'
+            : '-';
+        print('<td>' . $inviter . '</td>');
+    } elseif ($type === 'apply') {
         print('<td>' . nl2br($escape((string) $row->details)) . '</td>');
     } elseif ($type === 'donation') {
         $plan = $row->plan === '30days' ? '30 Days' : ($row->plan === 'lifetime' ? 'Lifetime' : '');
         print('<td>' . $escape($plan) . '</td><td>' . $escape((string) $row->txid) . '</td>');
+    }
+    if ($type === 'invite') {
+        print('</tr>');
+        continue;
     }
     $requestToken = \Illuminate\Support\Facades\Crypt::encryptString(json_encode([
         'user_id' => (int) $CURUSER['id'],
@@ -168,7 +215,9 @@ foreach ($requests as $row) {
     print('<button class="btn" type="submit" name="decision" value="deny">Denied</button></form></td></tr>');
 }
 if ($requests->isEmpty()) {
-    print('<tr><td colspan="' . ($type === 'apply' ? 5 : ($type === 'donation' ? 6 : 4)) . '" class="text">No pending account requests found.</td></tr>');
+    $emptyMessage = $type === 'invite' ? 'No registrations from generated invite links found.' : 'No pending account requests found.';
+    $columnCount = $type === 'invite' ? 5 : ($type === 'apply' ? 5 : ($type === 'donation' ? 6 : 4));
+    print('<tr><td colspan="' . $columnCount . '" class="text">' . $escape($emptyMessage) . '</td></tr>');
 }
 print('</table>');
 print($requests->links());

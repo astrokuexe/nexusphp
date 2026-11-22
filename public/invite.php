@@ -14,6 +14,40 @@ $pageSize = 50;
 if (($CURUSER['id'] != $id && !user_can('viewinvite')) || !is_valid_id($id))
     stderr($lang_invite['std_sorry'],$lang_invite['std_permission_denied'], true, false);
 $userRep = new \App\Repositories\UserRepository();
+function inviteGenerationOptions($userId): string
+{
+    global $lang_invite;
+
+    $permanentInviteCount = (int) \App\Models\User::query()->whereKey($userId)->value('invites');
+    $temporaryInvites = \App\Models\Invite::query()
+        ->where('inviter', $userId)
+        ->where('invitee', '')
+        ->where('valid', \App\Models\Invite::VALID_NO)
+        ->unissued()
+        ->where('expired_at', '>', now())
+        ->orderBy('expired_at')
+        ->get(['hash', 'expired_at']);
+    $inviteOptions = '';
+    if ($permanentInviteCount > 0) {
+        $inviteOptions .= sprintf(
+            '<option value="permanent">%s</option>',
+            sprintf($lang_invite['text_permanent_invites_available'], $permanentInviteCount)
+        );
+    }
+    foreach ($temporaryInvites as $temporaryInvite) {
+        $inviteOptions .= sprintf(
+            '<option value="%s">%s</option>',
+            htmlspecialchars($temporaryInvite->hash, ENT_QUOTES, 'UTF-8'),
+            sprintf(
+                $lang_invite['text_temporary_invite_available'],
+                htmlspecialchars($temporaryInvite->expired_at->toDateTimeString(), ENT_QUOTES, 'UTF-8')
+            )
+        );
+    }
+
+    return $inviteOptions;
+}
+
 function inviteMenu ($selected = "invitee") {
     global $lang_invite, $id, $CURUSER, $invitesystem, $userRep;
     begin_main_frame("", false, "100%");
@@ -36,38 +70,15 @@ function inviteMenu ($selected = "invitee") {
         print("<div style='display:flex;gap:8px;justify-content:flex-end;margin-top:8px'>");
         print("<form method=post action=invite.php?id=".htmlspecialchars($id)."&type=new><input type=submit ".$disabled." value='".htmlspecialchars($sendBtnText, ENT_QUOTES, 'UTF-8')."'></form>");
 
-        $permanentInviteCount = (int) \App\Models\User::query()->whereKey($CURUSER['id'])->value('invites');
-        $temporaryInvites = \App\Models\Invite::query()
-            ->where('inviter', $CURUSER['id'])
-            ->where('invitee', '')
-            ->where('valid', \App\Models\Invite::VALID_NO)
-            ->unissued()
-            ->where('expired_at', '>', now())
-            ->orderBy('expired_at')
-            ->get(['hash', 'expired_at']);
-        $inviteOptions = '';
-        if ($permanentInviteCount > 0) {
-            $inviteOptions .= sprintf(
-                '<option value="permanent">%s</option>',
-                sprintf($lang_invite['text_permanent_invites_available'], $permanentInviteCount)
-            );
-        }
-        foreach ($temporaryInvites as $temporaryInvite) {
-            $inviteOptions .= sprintf(
-                '<option value="%s">%s</option>',
-                htmlspecialchars($temporaryInvite->hash, ENT_QUOTES, 'UTF-8'),
-                sprintf(
-                    $lang_invite['text_temporary_invite_available'],
-                    htmlspecialchars($temporaryInvite->expired_at->toDateTimeString(), ENT_QUOTES, 'UTF-8')
-                )
-            );
-        }
-        if ($inviteOptions !== '') {
-            print("<form method=post action='takeinvite.php?type=generate'>".
-                "<input type=hidden name=csrf_token value='".htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8')."'>".
-                "<select name=hash>".$inviteOptions."</select>".
-                "<input type=submit ".$disabled." value='".htmlspecialchars($lang_invite['text_generate_invite_link'], ENT_QUOTES, 'UTF-8')."'>".
-                "</form>");
+        if ($selected != 'generated') {
+            $inviteOptions = inviteGenerationOptions($CURUSER['id']);
+            if ($inviteOptions !== '') {
+                print("<form method=post action='takeinvite.php?type=generate'>".
+                    "<input type=hidden name=csrf_token value='".htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8')."'>".
+                    "<select name=hash>".$inviteOptions."</select>".
+                    "<input type=submit ".$disabled." value='".htmlspecialchars($lang_invite['text_generate_invite_link'], ENT_QUOTES, 'UTF-8')."'>".
+                    "</form>");
+            }
         }
         print("</div></div>");
     }
@@ -94,7 +105,7 @@ if ($CURUSER['id'] == $id && is_string($_GET['generated'] ?? null) && $_GET['gen
         ->where('expired_at', '>', now())
         ->first();
     if ($generatedInvite) {
-        $signupUrl = getSchemeAndHttpHost()."/signup.php?type=invite&invitenumber=".rawurlencode($generatedInvite->hash);
+        $signupUrl = getSchemeAndHttpHost()."/youinvited.php/".rawurlencode($generatedInvite->hash);
         print("<div class='success'>".$lang_invite['text_generated_link_ready']."<br />".
             $lang_invite['text_invite_code'].": <code>".htmlspecialchars($generatedInvite->hash, ENT_QUOTES, 'UTF-8')."</code><br />".
             "<input type='text' readonly style='width:95%' value='".htmlspecialchars($signupUrl, ENT_QUOTES, 'UTF-8')."'></div>");
@@ -316,6 +327,28 @@ JS;
         print("</table>");
         print("</td></tr></table>" . ($pagertop ?? ''));
     } elseif (in_array($menuSelected, ['sent', 'tmp', 'generated'])) {
+        if ($menuSelected == 'generated' && $CURUSER['id'] == $id) {
+            $generationDisabled = '';
+            $generationError = '';
+            try {
+                $userRep->getInviteBtnText($CURUSER['id']);
+            } catch (\Exception $exception) {
+                $generationDisabled = ' disabled';
+                $generationError = $exception->getMessage();
+            }
+            $inviteOptions = inviteGenerationOptions($CURUSER['id']);
+            if ($inviteOptions === '') {
+                $inviteOptions = '<option value="">'.htmlspecialchars($lang_invite['text_no_invites_to_generate'], ENT_QUOTES, 'UTF-8').'</option>';
+                $generationDisabled = ' disabled';
+            }
+            print("<div style='margin:12px 0;padding:10px;border:1px solid #ccc'>".
+                "<form method=post action='takeinvite.php?type=generate'>".
+                "<input type=hidden name=csrf_token value='".htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8')."'>".
+                "<select name=hash ".$generationDisabled.">".$inviteOptions."</select> ".
+                "<input type=submit ".$generationDisabled." value='".htmlspecialchars($lang_invite['text_generate_invite_link'], ENT_QUOTES, 'UTF-8')."'>".
+                ($generationError !== '' ? "<div>".htmlspecialchars($generationError, ENT_QUOTES, 'UTF-8')."</div>" : "").
+                "</form></div>");
+        }
         $whereStr = "inviter = " . sqlesc($id);
         if ($menuSelected == 'sent') {
             $whereStr .= " and invitee != ''";
@@ -361,7 +394,7 @@ JS;
                     $isLinkUsable = $isHashValid && !$isExpired;
                     $signupLink = $isLinkUsable
                         ? sprintf(
-                            '&nbsp;<a href="signup.php?type=invite&invitenumber=%s" title="%s" target="_blank"><small>[%s]</small></a>',
+                            '&nbsp;<a href="youinvited.php/%s" title="%s" target="_blank" rel="noopener"><small>[%s]</small></a>',
                             rawurlencode($arr1['hash']),
                             htmlspecialchars($lang_invite['signup_link_help'], ENT_QUOTES, 'UTF-8'),
                             htmlspecialchars($lang_invite['signup_link'], ENT_QUOTES, 'UTF-8')
