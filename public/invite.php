@@ -9,7 +9,10 @@ loggedinorreturn();
 parked();
 $id = intval($_GET["id"] ?? 0);
 $type = unesc($_GET["type"] ?? '');
-$menuSelected = $_REQUEST['menu'] ?? 'invitee';
+$menuSelected = $_GET['menu'] ?? 'invitee';
+if (!is_string($menuSelected)) {
+    $menuSelected = 'invitee';
+}
 $pageSize = 50;
 if (($CURUSER['id'] != $id && !user_can('viewinvite')) || !is_valid_id($id))
     stderr($lang_invite['std_sorry'],$lang_invite['std_permission_denied'], true, false);
@@ -52,17 +55,7 @@ if ($menuSelected == 'generated' && $CURUSER['id'] != $id) {
 stdhead($lang_invite['head_invites']);
 print("<table width=100% class=main border=0 cellspacing=0 cellpadding=0><tr><td class=embedded>");
 
-print("<div style='display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap'>");
-print("<h1 style='flex:1 1 auto;margin:8px 0;text-align:center'><a href=\"invite.php?id=".$id."\">".$user['username'].$lang_invite['text_invite_system']."</a></h1>");
-if ($CURUSER['id'] == $id && $menuSelected === 'generated' && $type !== 'new') {
-    print("<div style='margin-left:auto;text-align:right'>".
-        "<form method=post action='takeinvite.php?type=generate'>".
-        "<input type=hidden name=csrf_token value='".htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8')."'>".
-        "<input id=generate-invite-btn type=submit class=btn value='".htmlspecialchars($lang_invite['text_generate_invite_link'], ENT_QUOTES, 'UTF-8')."' style='height:25px'>".
-        "</form>".
-        "</div>");
-}
-print("</div>");
+print("<h1 align=center><a href=\"invite.php?id=".$id."\">".$user['username'].$lang_invite['text_invite_system']."</a></h1>");
 if ($CURUSER['id'] == $id && is_string($_GET['generated'] ?? null) && $_GET['generated'] !== '') {
     $generatedInvite = \App\Models\Invite::query()
         ->where('inviter', $CURUSER['id'])
@@ -138,6 +131,14 @@ if ($type == 'new'){
 
 } else {
     inviteMenu($menuSelected);
+    if ($menuSelected === 'generated' && $CURUSER['id'] == $id) {
+        print("<div style='text-align:center;margin:10px 0'>".
+            "<form method=post action='takeinvite.php?type=generate'>".
+            "<input type=hidden name=csrf_token value='".htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8')."'>".
+            "<input id=generate-invite-btn type=submit class=btn value='".htmlspecialchars($lang_invite['text_generate_invite_link'], ENT_QUOTES, 'UTF-8')."' style='height:22px;padding:2px 6px;font-size:12px'>".
+            "</form>".
+            "</div>");
+    }
     if ($menuSelected == 'invitee') {
         $whereStr = "u.invited_by = " . sqlesc($id);
         if (!empty($_GET['status'])) {
