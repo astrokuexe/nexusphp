@@ -1,5 +1,11 @@
 <?php
 require_once("../include/bittorrent.php");
+$legacyHook = $GLOBALS['hook'];
+$legacyPlugin = $GLOBALS['plugin'];
+$app = require __DIR__ . '/../bootstrap/app.php';
+$app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+$GLOBALS['hook'] = $hook = $legacyHook;
+$GLOBALS['plugin'] = $plugin = $legacyPlugin;
 dbconn();
 require_once(get_langfile_path());
 $currentLangTakeInvite = $lang_takeinvite;
