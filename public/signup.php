@@ -16,7 +16,7 @@ if ($langid)
         nexus_redirect($_SERVER['REQUEST_URI']);
 	}
 }
-require_once(get_langfile_path("", false, $CURLANGDIR));
+require_once(get_langfile_path("signup.php", false, $CURLANGDIR));
 cur_user_check ();
 $type = is_string($_GET['type'] ?? null) ? $_GET['type'] : '';
 $registrationMode = $type === 'apply' ? 'apply' : 'signup';
