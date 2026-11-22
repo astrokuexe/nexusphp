@@ -35,6 +35,15 @@ $lang_invite = array
 	'text_send_date' => "Send Date",
 	'text_hash_status' => 'Hash valid',
 	'text_invitee_user' => 'Invitee user',
+    'text_generated_invites_status' => 'Generated invite links',
+    'text_generate_invite_link' => 'Generate invite link',
+    'text_permanent_invites_available' => 'Permanent invite (%s available)',
+    'text_temporary_invite_available' => 'Temporary invite (expires %s)',
+    'text_no_generated_links' => 'No generated invite links.',
+    'text_link_status' => 'Link status',
+    'text_link_active' => 'Active',
+    'text_link_used' => 'Used',
+    'text_link_expired' => 'Expired',
 
 	'text_invitation_body' => "
 Hi Buddy,

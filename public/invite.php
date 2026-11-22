@@ -2,6 +2,9 @@
 require "../include/bittorrent.php";
 dbconn();
 require_once(get_langfile_path());
+$currentLangInvite = $lang_invite;
+require(get_langfile_path("invite.php", false, "en"));
+$lang_invite = array_merge($lang_invite, $currentLangInvite);
 loggedinorreturn();
 parked();
 $id = intval($_GET["id"] ?? 0);
@@ -18,6 +21,10 @@ function inviteMenu ($selected = "invitee") {
     print ("<li" . ($selected == "invitee" ? " class=selected" : "") . "><a href=\"?id=".$id."&menu=invitee\">".$lang_invite['text_invite_status']."</a></li>");
     print ("<li" . ($selected == "sent" ? " class=selected" : "") . "><a href=\"?id=".$id."&menu=sent\">".$lang_invite['text_sent_invites_status']."</a></li>");
     print ("<li" . ($selected == "tmp" ? " class=selected" : "") . "><a href=\"?id=".$id."&menu=tmp\">".$lang_invite['text_tmp_status']."</a></li>");
+    if ($CURUSER['id'] == $id) {
+        print ("<li" . ($selected == "generated" ? " class=selected" : "") . "><a href=\"?id=".$id."&menu=generated\">".$lang_invite['text_generated_invites_status']."</a></li>");
+    }
+    print("</ul>");
     try {
         $sendBtnText = $userRep->getInviteBtnText($CURUSER['id']);
         $disabled = '';
@@ -26,7 +33,43 @@ function inviteMenu ($selected = "invitee") {
         $disabled = ' disabled';
     }
     if ($CURUSER['id'] == $id) {
-        print ("</ul><form style='position: absolute;top:0;right:0' method=post action=invite.php?id=".htmlspecialchars($id)."&type=new><input type=submit ".$disabled." value='".$sendBtnText."'></form></div>");
+        print("<div style='display:flex;gap:8px;justify-content:flex-end;margin-top:8px'>");
+        print("<form method=post action=invite.php?id=".htmlspecialchars($id)."&type=new><input type=submit ".$disabled." value='".htmlspecialchars($sendBtnText, ENT_QUOTES, 'UTF-8')."'></form>");
+
+        $permanentInviteCount = (int) \App\Models\User::query()->whereKey($CURUSER['id'])->value('invites');
+        $temporaryInvites = \App\Models\Invite::query()
+            ->where('inviter', $CURUSER['id'])
+            ->where('invitee', '')
+            ->where('valid', \App\Models\Invite::VALID_NO)
+            ->unissued()
+            ->where('expired_at', '>', now())
+            ->orderBy('expired_at')
+            ->get(['hash', 'expired_at']);
+        $inviteOptions = '';
+        if ($permanentInviteCount > 0) {
+            $inviteOptions .= sprintf(
+                '<option value="permanent">%s</option>',
+                sprintf($lang_invite['text_permanent_invites_available'], $permanentInviteCount)
+            );
+        }
+        foreach ($temporaryInvites as $temporaryInvite) {
+            $inviteOptions .= sprintf(
+                '<option value="%s">%s</option>',
+                htmlspecialchars($temporaryInvite->hash, ENT_QUOTES, 'UTF-8'),
+                sprintf(
+                    $lang_invite['text_temporary_invite_available'],
+                    htmlspecialchars($temporaryInvite->expired_at->toDateTimeString(), ENT_QUOTES, 'UTF-8')
+                )
+            );
+        }
+        if ($inviteOptions !== '') {
+            print("<form method=post action='takeinvite.php?type=generate'>".
+                "<input type=hidden name=csrf_token value='".htmlspecialchars(csrf_token(), ENT_QUOTES, 'UTF-8')."'>".
+                "<select name=hash>".$inviteOptions."</select>".
+                "<input type=submit ".$disabled." value='".htmlspecialchars($lang_invite['text_generate_invite_link'], ENT_QUOTES, 'UTF-8')."'>".
+                "</form>");
+        }
+        print("</div></div>");
     }
     end_main_frame();
 }
@@ -35,6 +78,9 @@ $res = sql_query("SELECT * FROM users WHERE id = ".mysql_real_escape_string($id)
 $user =  mysql_fetch_assoc($res);
 if (!$user) {
     stderr($lang_invite['std_sorry'], 'Invalid id');
+}
+if ($menuSelected == 'generated' && $CURUSER['id'] != $id) {
+    stderr($lang_invite['std_sorry'], $lang_invite['std_permission_denied'], true, false);
 }
 stdhead($lang_invite['head_invites']);
 print("<table width=100% class=main border=0 cellspacing=0 cellpadding=0><tr><td class=embedded>");
@@ -71,6 +117,8 @@ if ($type == 'new'){
     registration_check('invitesystem',true,false);
     $temporaryInvites = \App\Models\Invite::query()->where('inviter', $CURUSER['id'])
         ->where('invitee', '')
+        ->where('valid', \App\Models\Invite::VALID_NO)
+    ->unissued()
         ->where('expired_at', '>', now())
         ->orderBy('expired_at', 'asc')
         ->get()
@@ -253,12 +301,14 @@ JS;
         }
         print("</table>");
         print("</td></tr></table>" . ($pagertop ?? ''));
-    } elseif (in_array($menuSelected, ['sent', 'tmp'])) {
+    } elseif (in_array($menuSelected, ['sent', 'tmp', 'generated'])) {
         $whereStr = "inviter = " . sqlesc($id);
         if ($menuSelected == 'sent') {
             $whereStr .= " and invitee != ''";
         } elseif ($menuSelected == 'tmp') {
-            $whereStr .= " and invitee = '' and expired_at is not null";
+            $whereStr .= " and invitee = '' and expired_at is not null and (time_invited is null or time_invited = '0000-00-00 00:00:00')";
+        } else {
+            $whereStr .= " and invitee = '' and time_invited is not null and time_invited != '0000-00-00 00:00:00'";
         }
         $rul = sql_query("SELECT COUNT(*) FROM invites WHERE $whereStr");
         $arre = mysql_fetch_row($rul);
@@ -266,14 +316,18 @@ JS;
         print("<table border=1 width=100% cellspacing=0 cellpadding=5>");
 
         if(!$number1){
-            print("<tr align=center><td colspan=6>".$lang_functions['text_none']."</tr>");
+            $emptyText = $menuSelected == 'generated' ? $lang_invite['text_no_generated_links'] : $lang_functions['text_none'];
+            print("<tr align=center><td colspan=6>".$emptyText."</tr>");
         } else {
             list($pagertop, $pagerbottom, $limit) = pager($pageSize, $number1, "?id=$id&menu=$menuSelected&");
 
             $rer = sql_query("SELECT * FROM invites WHERE $whereStr $limit") or sqlerr();
             $num1 = mysql_num_rows($rer);
 
-            print("<tr><td class=colhead>".$lang_invite['text_email']."</td><td class=colhead>".$lang_invite['text_hash']."</td><td class=colhead>".$lang_invite['text_send_date']."</td>");
+            if ($menuSelected == 'generated') {
+                print("<tr><td class=colhead>".$lang_invite['text_hash']."</td><td class=colhead>".$lang_invite['text_send_date']."</td><td class=colhead>".$lang_invite['text_expired_at']."</td><td class=colhead>".$lang_invite['text_link_status']."</td></tr>");
+            } else {
+                print("<tr><td class=colhead>".$lang_invite['text_email']."</td><td class=colhead>".$lang_invite['text_hash']."</td><td class=colhead>".$lang_invite['text_send_date']."</td>");
             if ($menuSelected == 'sent') {
                 print("<td class='colhead'>".$lang_invite['text_hash_status']."</td>");
             }
@@ -283,10 +337,31 @@ JS;
                 print("<td class='colhead'>".nexus_trans('label.created_at')."</td>");
             }
             print("</tr>");
+            }
             for ($i = 0; $i < $num1; ++$i)
             {
                 $arr1 = mysql_fetch_assoc($rer);
                 $isHashValid = $arr1['valid'] == \App\Models\Invite::VALID_YES;
+                if ($menuSelected == 'generated') {
+                    $isExpired = \App\Models\Invite::hasExpired($arr1['expired_at']);
+                    $isLinkUsable = $isHashValid && !$isExpired;
+                    $signupLink = $isLinkUsable
+                        ? sprintf(
+                            '&nbsp;<a href="signup.php?type=invite&invitenumber=%s" title="%s" target="_blank"><small>[%s]</small></a>',
+                            rawurlencode($arr1['hash']),
+                            htmlspecialchars($lang_invite['signup_link_help'], ENT_QUOTES, 'UTF-8'),
+                            htmlspecialchars($lang_invite['signup_link'], ENT_QUOTES, 'UTF-8')
+                        )
+                        : '';
+                    $linkStatus = $isExpired
+                        ? $lang_invite['text_link_expired']
+                        : ($isHashValid ? $lang_invite['text_link_active'] : $lang_invite['text_link_used']);
+                    print("<tr><td class=rowfollow>".htmlspecialchars($arr1['hash'], ENT_QUOTES, 'UTF-8').$signupLink."</td>".
+                        "<td class=rowfollow>".htmlspecialchars($arr1['time_invited'], ENT_QUOTES, 'UTF-8')."</td>".
+                        "<td class=rowfollow>".htmlspecialchars($arr1['expired_at'], ENT_QUOTES, 'UTF-8')."</td>".
+                        "<td class=rowfollow>".$linkStatus."</td></tr>");
+                    continue;
+                }
                 $registerLink = '';
                 if ($isHashValid) {
                     $registerLink = sprintf('&nbsp;<a href="signup.php?type=invite&invitenumber=%s" title="%s" target="_blank"><small>[%s]</small></a>', $arr1['hash'], $lang_invite['signup_link_help'], $lang_invite['signup_link']);

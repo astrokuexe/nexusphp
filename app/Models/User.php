@@ -409,6 +409,8 @@ class User extends Authenticatable implements FilamentUser, HasName
     {
         return $this->hasMany(Invite::class, 'inviter')
             ->where('invitee', '')
+            ->where('valid', Invite::VALID_NO)
+            ->unissued()
             ->whereNotNull('expired_at')
             ->where('expired_at', '>=', Carbon::now())
         ;

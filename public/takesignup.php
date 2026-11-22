@@ -82,6 +82,9 @@ $code = unesc($_POST["hash"]);
 	$inv = mysql_fetch_assoc($res);
 	if (!$inv)
 		bark('invalid invite code');
+    if (\App\Models\Invite::hasExpired($inv['expired_at'] ?? null)) {
+        bark('invite link has expired');
+    }
 	if ($inv['inviter'] != $inviter) {
         \App\Models\Invite::query()->where('id', $inv['id'])->update(['valid' => \App\Models\Invite::VALID_NO]);
         stderr(nexus_trans('nexus.invalid_argument'), nexus_trans('invite.invalid_inviter'));

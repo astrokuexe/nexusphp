@@ -2,6 +2,10 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
+
 class Invite extends NexusModel
 {
     protected $table = 'invites';
@@ -25,6 +29,24 @@ class Invite extends NexusModel
         'invitee_register_uid', 'invitee_register_email', 'invitee_register_username',
         'pre_register_email', 'pre_register_username',
     ];
+
+    public static function hasExpired(CarbonInterface|string|null $expiredAt): bool
+    {
+        return $expiredAt !== null && Carbon::parse($expiredAt)->lte(now());
+    }
+
+    public static function isUnissued(?string $timeInvited): bool
+    {
+        return $timeInvited === null || $timeInvited === '' || $timeInvited === '0000-00-00 00:00:00';
+    }
+
+    public function scopeUnissued(Builder $query): Builder
+    {
+        return $query->where(function (Builder $query) {
+            $query->whereNull('time_invited')
+                ->orWhere('time_invited', '0000-00-00 00:00:00');
+        });
+    }
 
     public function getValidTextAttribute()
     {

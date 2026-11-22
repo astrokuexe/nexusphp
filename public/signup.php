@@ -47,6 +47,9 @@ if ($type == 'invite')
 	$inv = mysql_fetch_assoc($res);
 	if (!$inv)
 		stderr($lang_signup['std_error'], $lang_signup['std_uninvited'], 0);
+    if (\App\Models\Invite::hasExpired($inv['expired_at'] ?? null)) {
+        stderr($lang_signup['std_error'], $lang_signup['std_uninvited'], 0);
+    }
     $inviter = (int) $inv["inviter"];
 	stdhead($lang_signup['head_invite_signup']);
 }

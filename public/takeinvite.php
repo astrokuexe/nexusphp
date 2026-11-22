@@ -2,6 +2,9 @@
 require_once("../include/bittorrent.php");
 dbconn();
 require_once(get_langfile_path());
+$currentLangTakeInvite = $lang_takeinvite;
+require(get_langfile_path("takeinvite.php", false, "en"));
+$lang_takeinvite = array_merge($lang_takeinvite, $currentLangTakeInvite);
 loggedinorreturn();
 $id = $CURUSER['id'];
 $lockName = sprintf("takeinvite:%s", $id);
@@ -18,11 +21,76 @@ try {
     stderr($lang_takeinvite['std_error'], $exception->getMessage());
 }
 function bark($msg) {
+  global $lang_takeinvite;
   stdhead();
 	stdmsg($lang_takeinvite['head_invitation_failed'], $msg);
   stdfoot();
   exit;
 }
+if (($_GET['type'] ?? '') == 'generate') {
+    if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+        bark($lang_takeinvite['std_error']);
+    }
+    $csrfToken = $_POST['csrf_token'] ?? '';
+    if (!is_string($csrfToken) || !hash_equals(csrf_token(), $csrfToken)) {
+        bark($lang_takeinvite['std_error']);
+    }
+    $selectedHash = $_POST['hash'] ?? '';
+    if (!is_string($selectedHash) || $selectedHash === '') {
+        bark($lang_takeinvite['std_must_select_invite']);
+    }
+
+    $inviteHash = $selectedHash;
+    try {
+        if ($selectedHash === 'permanent') {
+            $hashes = (new \App\Repositories\ToolRepository())->generateUniqueInviteHash([], 1, 1);
+            $inviteHash = $hashes[0];
+            $expiredAt = now()->addDays((int)$invite_timeout);
+            \Illuminate\Support\Facades\DB::transaction(function () use ($id, $inviteHash, $expiredAt, $lang_takeinvite) {
+                $user = \App\Models\User::query()->whereKey($id)->lockForUpdate()->firstOrFail();
+                if ($user->invites < 1) {
+                    throw new \DomainException($lang_takeinvite['std_no_invite']);
+                }
+                $user->decrement('invites');
+                \App\Models\Invite::query()->insert([
+                    'inviter' => $id,
+                    'invitee' => '',
+                    'hash' => $inviteHash,
+                    'time_invited' => now(),
+                    'valid' => \App\Models\Invite::VALID_YES,
+                    'expired_at' => $expiredAt,
+                    'created_at' => now(),
+                ]);
+            });
+        } else {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($id, $selectedHash, $lang_takeinvite) {
+                $invite = \App\Models\Invite::query()
+                    ->where('inviter', $id)
+                    ->where('hash', $selectedHash)
+                    ->where('invitee', '')
+                    ->unissued()
+                    ->lockForUpdate()
+                    ->first();
+                if (!$invite || $invite->valid != \App\Models\Invite::VALID_NO) {
+                    throw new \DomainException($lang_takeinvite['hash_not_exists']);
+                }
+                if (!$invite->expired_at || \App\Models\Invite::hasExpired($invite->expired_at)) {
+                    throw new \DomainException($lang_takeinvite['hash_expired']);
+                }
+                $invite->valid = \App\Models\Invite::VALID_YES;
+                $invite->time_invited = now();
+                $invite->save();
+            });
+        }
+    } catch (\DomainException $exception) {
+        $lock->release();
+        bark($exception->getMessage());
+    }
+    $lock->release();
+    header("Location: invite.php?id=".htmlspecialchars($id)."&menu=generated");
+    exit;
+}
+
 $email = unesc(htmlspecialchars(trim($_POST["email"])));
 $email = safe_email($email);
 $preRegisterUsername = $_POST['pre_register_username'] ?? '';
@@ -78,10 +146,12 @@ if ($_POST['hash'] == 'permanent') {
     if (!$hashRecord) {
         bark($lang_takeinvite['hash_not_exists']);
     }
-    if ($hashRecord->invitee != '') {
+    if ($hashRecord->invitee != '' || !\App\Models\Invite::isUnissued($hashRecord->time_invited)) {
         bark('hash '.$lang_takeinvite['std_is_in_use']);
     }
-    if ($hashRecord->expired_at->lt(now())) {
+    if ($hashRecord->valid != \App\Models\Invite::VALID_NO)
+        bark($lang_takeinvite['hash_not_exists']);
+    if (!$hashRecord->expired_at || \App\Models\Invite::hasExpired($hashRecord->expired_at)) {
         bark($lang_takeinvite['hash_expired']);
     }
     $hash = $_POST['hash'];
@@ -122,7 +192,8 @@ if ($sendResult === true) {
             "inviter" => $id,
             "invitee" => $email,
             "hash" => $hash,
-            "time_invited" => now()->toDateTimeString()
+            "time_invited" => now()->toDateTimeString(),
+            "expired_at" => now()->addDays((int)$invite_timeout),
         ];
         if ($isPreRegisterEmailAndUsername) {
             $insert["pre_register_email"] = $email;

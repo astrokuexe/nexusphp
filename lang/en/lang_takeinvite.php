@@ -22,6 +22,9 @@ $lang_takeinvite = array
 	'std_email_address_banned' => "This email address is banned!",
 	'std_wrong_email_address_domains' => "This email address is not allowed! You could only send invitation to those domains: ",
 	'std_no_invite' => "You have no invitation. How do you get here?",
+    'std_must_select_invite' => "Please select an invite to use.",
+    'hash_not_exists' => "This invite link is invalid or has already been used.",
+    'hash_expired' => "This invite link has expired.",
 	'std_invitation_already_sent_to' => "Invitation failed! The email address ",
 	'std_await_user_registeration' => " has already received an invitation. Please wait for the user to register.",
 );
