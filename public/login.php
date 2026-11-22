@@ -125,6 +125,7 @@ if ($registrationMode === 'signup') {
 <p><a href="donations.php?report=1">Already donated? Send your TXID</a></p>
 <?php
 print('<p>' . $lang_login['p_forget_pass_recover'] . '</p>');
+print('<p>' . ($lang_login['p_resend_confirm'] ?? 'Did not receive confirmation mail or confirmation link is broken? <a href="confirm_resend.php"><b>Send confirmation mail again</b></a>') . '</p>');
 if ($registrationMode !== 'login' && $showhelpbox_main != 'no'){
 ?>
 <table width="100%" class="main" border="0" cellspacing="0" cellpadding="0"><tr><td class="embedded">
