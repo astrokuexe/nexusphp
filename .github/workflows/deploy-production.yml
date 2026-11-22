@@ -1,0 +1,66 @@
+name: Deploy production
+
+on:
+  push:
+    branches:
+      - php8
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy php8 to production
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DEPLOY_SSH_HOST: ${{ secrets.DEPLOY_SSH_HOST }}
+      DEPLOY_SSH_USER: ${{ secrets.DEPLOY_SSH_USER }}
+      DEPLOY_SSH_PRIVATE_KEY: ${{ secrets.DEPLOY_SSH_PRIVATE_KEY }}
+      DEPLOY_SSH_KNOWN_HOSTS: ${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}
+      DEPLOY_WEB_ROOT: ${{ secrets.DEPLOY_WEB_ROOT }}
+    steps:
+      - name: Configure SSH
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$DEPLOY_SSH_HOST"
+          test -n "$DEPLOY_SSH_USER"
+          test -n "$DEPLOY_SSH_PRIVATE_KEY"
+          test -n "$DEPLOY_SSH_KNOWN_HOSTS"
+          test -n "$DEPLOY_WEB_ROOT"
+
+          install -m 700 -d "$HOME/.ssh"
+          printf '%s\n' "$DEPLOY_SSH_PRIVATE_KEY" > "$HOME/.ssh/deploy_key"
+          printf '%s\n' "$DEPLOY_SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/deploy_key" "$HOME/.ssh/known_hosts"
+          ssh-keygen -y -f "$HOME/.ssh/deploy_key" >/dev/null
+
+      - name: Update production server
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            printf 'set -euo pipefail\n'
+            printf 'cd %q\n' "$DEPLOY_WEB_ROOT"
+            printf 'test "$(git branch --show-current)" = %q\n' "php8"
+            printf 'backup_suffix=$(date -u +%%Y%%m%%dT%%H%%M%%SZ)\n'
+            printf 'git stash push -m "pre-deploy-$backup_suffix"\n'
+            printf 'git fetch origin +refs/heads/%q:refs/remotes/origin/%q\n' "php8" "php8"
+            printf 'if test -n "$(git status --porcelain --untracked-files=all)"; then echo "Untracked files remain after stashing; refusing to overwrite the server checkout." >&2; exit 1; fi\n'
+            printf 'if test "$(git rev-list --count origin/%q..HEAD)" -gt 0; then git branch "pre-deploy/$backup_suffix" HEAD; fi\n' "php8"
+            printf 'git reset --hard origin/%q\n' "php8"
+            printf 'php artisan nexus:update\n'
+          } | ssh \
+              -i "$HOME/.ssh/deploy_key" \
+              -o BatchMode=yes \
+              -o IdentitiesOnly=yes \
+              -o StrictHostKeyChecking=yes \
+              -o UserKnownHostsFile="$HOME/.ssh/known_hosts" \
+              "$DEPLOY_SSH_USER@$DEPLOY_SSH_HOST" \
+              'bash -s'
