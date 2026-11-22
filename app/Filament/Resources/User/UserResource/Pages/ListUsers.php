@@ -10,7 +10,6 @@ use App\Filament\Resources\User\UserResource;
 use Filament\Pages\Actions;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Model;
-use Filament\Tables\Filters\Layout;
 
 class ListUsers extends PageList implements HasActions
 {
@@ -29,7 +28,7 @@ class ListUsers extends PageList implements HasActions
 //    }
 
 
-    protected function getTableFiltersLayout(): ?string
+    protected function getTableFiltersLayout(): FiltersLayout
     {
         return FiltersLayout::AboveContent;
     }
