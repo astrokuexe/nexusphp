@@ -97,7 +97,6 @@ if ($useChallengeResponseAuthentication) {
     print('<input type="hidden" name="response" />');
     print('<input type="hidden" name="challenge" />');
 }
-\App\Repositories\UserPasskeyRepository::renderLogin();
 ?>
 </form>
 <?php
@@ -142,5 +141,4 @@ print("</td></tr></table></form></td></tr></table>");
 ?>
 <?php
 render_password_challenge_js("login-form", "username", "password");
-\Nexus\Nexus::js('js/passkey.js', 'footer', true);
 stdfoot();
