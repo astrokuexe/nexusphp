@@ -12,12 +12,14 @@ if (!user_can('staffmem')) {
     permissiondenied();
 }
 \Nexus\Database\RuntimeMigrations::ensureAccountRequestsTable();
-\Nexus\Database\RuntimeMigrations::ensureInviteRegistrationRequestsTable();
 
 $types = ['signup' => 'SignUp', 'apply' => 'Apply', 'donation' => 'Donations', 'invite' => 'Invite'];
 $type = is_string($_GET['type'] ?? null) ? $_GET['type'] : 'signup';
 if (!isset($types[$type])) {
     $type = 'signup';
+}
+if ($type === 'invite') {
+    \Nexus\Database\RuntimeMigrations::ensureInviteRegistrationRequestsTable();
 }
 $search = trim(is_string($_GET['q'] ?? null) ? $_GET['q'] : '');
 $escape = static fn(string $value): string => htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
