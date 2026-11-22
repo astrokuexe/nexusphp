@@ -44,6 +44,8 @@ $lang_invite = array
     'text_link_active' => 'Active',
     'text_link_used' => 'Used',
     'text_link_expired' => 'Expired',
+    'text_generated_link_ready' => 'Invite link generated. Share this link with your invitee:',
+    'text_invite_code' => 'Invite code',
 
 	'text_invitation_body' => "
 Hi Buddy,

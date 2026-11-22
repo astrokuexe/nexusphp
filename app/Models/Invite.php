@@ -44,7 +44,7 @@ class Invite extends NexusModel
     {
         return $query->where(function (Builder $query) {
             $query->whereNull('time_invited')
-                ->orWhere('time_invited', '0000-00-00 00:00:00');
+                ->orWhere('time_invited', '=', 0);
         });
     }
 

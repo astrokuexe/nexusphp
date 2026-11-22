@@ -87,7 +87,7 @@ if (($_GET['type'] ?? '') == 'generate') {
         bark($exception->getMessage());
     }
     $lock->release();
-    header("Location: invite.php?id=".htmlspecialchars($id)."&menu=generated");
+    header("Location: invite.php?id=".htmlspecialchars($id)."&menu=generated&generated=".rawurlencode($inviteHash));
     exit;
 }
 

@@ -86,6 +86,20 @@ stdhead($lang_invite['head_invites']);
 print("<table width=100% class=main border=0 cellspacing=0 cellpadding=0><tr><td class=embedded>");
 
 print("<h1 align=center><a href=\"invite.php?id=".$id."\">".$user['username'].$lang_invite['text_invite_system']."</a></h1>");
+if ($CURUSER['id'] == $id && is_string($_GET['generated'] ?? null) && $_GET['generated'] !== '') {
+    $generatedInvite = \App\Models\Invite::query()
+        ->where('inviter', $CURUSER['id'])
+        ->where('hash', $_GET['generated'])
+        ->where('valid', \App\Models\Invite::VALID_YES)
+        ->where('expired_at', '>', now())
+        ->first();
+    if ($generatedInvite) {
+        $signupUrl = getSchemeAndHttpHost()."/signup.php?type=invite&invitenumber=".rawurlencode($generatedInvite->hash);
+        print("<div class='success'>".$lang_invite['text_generated_link_ready']."<br />".
+            $lang_invite['text_invite_code'].": <code>".htmlspecialchars($generatedInvite->hash, ENT_QUOTES, 'UTF-8')."</code><br />".
+            "<input type='text' readonly style='width:95%' value='".htmlspecialchars($signupUrl, ENT_QUOTES, 'UTF-8')."'></div>");
+    }
+}
 	$sent = htmlspecialchars($_GET['sent'] ?? '');
 	if ($sent == 1){
 		$msg = $lang_invite['text_invite_code_sent'];
@@ -306,9 +320,9 @@ JS;
         if ($menuSelected == 'sent') {
             $whereStr .= " and invitee != ''";
         } elseif ($menuSelected == 'tmp') {
-            $whereStr .= " and invitee = '' and expired_at is not null and (time_invited is null or time_invited = '0000-00-00 00:00:00')";
+            $whereStr .= " and invitee = '' and expired_at is not null and (time_invited is null or time_invited = 0)";
         } else {
-            $whereStr .= " and invitee = '' and time_invited is not null and time_invited != '0000-00-00 00:00:00'";
+            $whereStr .= " and invitee = '' and time_invited > '1970-01-01 00:00:00'";
         }
         $rul = sql_query("SELECT COUNT(*) FROM invites WHERE $whereStr");
         $arre = mysql_fetch_row($rul);
