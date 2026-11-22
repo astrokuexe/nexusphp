@@ -5,6 +5,7 @@ require_once(get_langfile_path('torrents.php'));
 require_once(get_langfile_path('special.php'));
 loggedinorreturn();
 parked();
+\Nexus\Database\RuntimeMigrations::ensureCategoryParentId();
 
 //check searchbox
 switch (nexus()->getScript()) {

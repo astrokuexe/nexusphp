@@ -209,6 +209,9 @@ $res_check_user = sql_query("SELECT * FROM users WHERE username = " . $wantusern
 if(mysql_num_rows($res_check_user) == 1)
   bark($lang_takesignup['std_username_exists']);
 
+if ($requestType !== null) {
+    \Nexus\Database\RuntimeMigrations::ensureAccountRequestsTable();
+}
 $ret = sql_query("INSERT INTO users (username, passhash, passkey, secret, auth_key, editsecret, email, country, gender, status, class, invites, ".($type == 'invite' ? "invited_by," : "")." added, last_access, lang, stylesheet".($showschool == 'yes' ? ", school" : "").", uploaded) VALUES (" . $wantusername . "," . $wantpasshash . "," . sqlesc($passkey) . "," . $secret . "," . $authKey. "," . $editsecret . "," . $email . "," . $country . "," . $gender . ", 'pending', ".$defaultclass_class.",". $invite_count .", ".($type == 'invite' ? "'$inviter'," : "") ." '". date("Y-m-d H:i:s") ."' , " . " '". date("Y-m-d H:i:s") ."' , ".$sitelangid . ",".$defcss.($showschool == 'yes' ? ",".$school : "").",".($iniupload_main > 0 ? $iniupload_main : 0).")") or sqlerr(__FILE__, __LINE__);
 $id = mysql_insert_id();
 if ($requestType !== null) {

@@ -59,6 +59,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && ($_POST['action'] ?? '') ==
         stderr('Account limit reached', 'The site cannot accept additional accounts right now.');
     }
 
+    \Nexus\Database\RuntimeMigrations::ensureAccountRequestsTable();
     $secret = mksecret();
     $passwordHash = hash('sha256', $secret . hash('sha256', $password));
     $authKey = hash('sha256', mksecret(32));
@@ -107,6 +108,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && ($_POST['action'] ?? '') ==
         stderr('Invalid report', 'Enter your username, valid email address, and 64-character TXID.');
     }
 
+    \Nexus\Database\RuntimeMigrations::ensureAccountRequestsTable();
     $reportAccepted = \Illuminate\Support\Facades\DB::transaction(function () use ($username, $email, $txid) {
         if (\Illuminate\Support\Facades\DB::table('account_requests')->where('txid', strtolower($txid))->exists()) {
             return false;
@@ -138,7 +140,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && ($_POST['action'] ?? '') ==
 
 stdhead('Donations');
 begin_main_frame();
-print('<h2>VIP account donation</h2>');
+print('<h2>Order VIP account</h2>');
 print('<p class="text">30 Days &mdash; 30 USD<br>Lifetime &mdash; 250 USD</p>');
 
 if ($orderResult !== null) {

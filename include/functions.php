@@ -2643,7 +2643,8 @@ else
 			echo "<span>".$headerad[0]."</span>";
 		}
 }
-if ($enabledonation == 'yes'){?>
+$hideDonationButton = in_array(nexus()->getScript(), ['login', 'donations', 'recover', 'apply'], true);
+if ($enabledonation == 'yes' && !$hideDonationButton){?>
 			<a href="donate.php"><img src="<?php echo get_forum_pic_folder()?>/donate.gif" alt="Make a donation" style="margin-left: 5px; margin-top: 50px;" /></a>
 <?php
 }

@@ -121,7 +121,7 @@ if ($registrationMode === 'signup') {
     print('<p><a href="apply.php">Apply for an account</a></p>');
 }
 ?>
-<p><a class="btn" href="donations.php">Donate / Order VIP account</a></p>
+<p><a class="btn" href="donations.php">Order VIP account</a></p>
 <p><a href="donations.php?report=1">Already donated? Send your TXID</a></p>
 <?php
 print('<p>' . $lang_login['p_forget_pass_recover'] . '</p>');
