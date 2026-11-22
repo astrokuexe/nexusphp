@@ -46,14 +46,14 @@ if ($custom !== '') {
     print('<div class="text">' . format_comment($custom) . '</div>');
 }
 
-print('<div style="display:flex;flex-wrap:wrap;gap:24px;margin:20px 0">');
+print('<div style="display:flex;flex-direction:column;gap:24px;margin:20px 0">');
 foreach ($wallets as $coin => $wallet) {
     print('<section class="text" style="flex:1;min-width:280px;padding:16px;border:1px solid #888">');
     print('<h3>' . $escape($wallet['name']) . '</h3>');
     if (isset($qrImages[$coin])) {
         print('<p><img src="' . $escape($qrImages[$coin]) . '" alt="' . $escape($wallet['name']) . ' QR code" style="max-width:220px;width:100%;height:auto"></p>');
     }
-    print('<p><a href="' . $escape($wallet['uri'] . $wallet['address']) . '">' . $escape($wallet['address']) . '</a></p>');
+    print('<p><a href="' . $escape($wallet['uri'] . $wallet['address']) . '" style="overflow-wrap:anywhere">' . $escape($wallet['address']) . '</a></p>');
     print('</section>');
 }
 print('</div>');
