@@ -5291,6 +5291,11 @@ function get_post_row($postid)
 function get_country_row($id)
 {
 	return \Nexus\Database\NexusDB::remember('country_'.$id.'_content', 86400, function () use ($id) {
+		if (!IN_NEXUS) {
+			$row = \Illuminate\Support\Facades\DB::table('countries')->where('id', (int)$id)->first();
+			return $row ? (array)$row : false;
+		}
+
 		$res = sql_query("SELECT * FROM countries WHERE id=".sqlesc($id)." LIMIT 1") or sqlerr(__FILE__,__LINE__);
 		return mysql_fetch_array($res);
 	});
