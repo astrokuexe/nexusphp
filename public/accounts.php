@@ -50,7 +50,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
 
     if ($type === 'invite') {
         try {
-            $review = \Illuminate\Support\Facades\DB::transaction(function () use ($requestId, $decision, $defaultclass_class, $invite_count, $iniupload_main) {
+            $review = \Illuminate\Support\Facades\DB::transaction(function () use ($requestId, $decision, $defaultclass_class, $invite_count) {
                 $request = \Illuminate\Support\Facades\DB::table('invite_registration_requests')
                     ->where('id', $requestId)
                     ->where('status', 'pending')
@@ -95,7 +95,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                         'ip' => $request->ip,
                         'lang' => (int) $request->lang,
                         'stylesheet' => (int) $request->stylesheet,
-                        'uploaded' => max((int) $iniupload_main, 0),
+                        'uploaded' => (int) getsize_int(100, 'G'),
                         'passkey' => md5($request->username . $now . $request->passhash),
                     ]);
 
@@ -206,9 +206,20 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                 'editsecret' => '',
             ];
             if ($request->type === 'donation') {
+                $uploadGigabytes = match ($request->plan) {
+                    '30days' => 50,
+                    'lifetime' => 500,
+                    default => null,
+                };
+                if ($uploadGigabytes === null) {
+                    return null;
+                }
                 $userUpdate['class'] = \App\Models\User::CLASS_VIP;
                 $userUpdate['vip_added'] = 'yes';
                 $userUpdate['vip_until'] = $request->plan === '30days' ? now()->addDays(30)->toDateTimeString() : null;
+                $userUpdate['uploaded'] = (int) getsize_int($uploadGigabytes, 'G');
+            } elseif ($request->type === 'apply') {
+                $userUpdate['uploaded'] = (int) getsize_int(50, 'G');
             }
             \Illuminate\Support\Facades\DB::table('users')->where('id', $request->user_id)->update($userUpdate);
         } else {
