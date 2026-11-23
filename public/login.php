@@ -22,9 +22,9 @@ failedloginscheck ();
 cur_user_check () ;
 stdhead($lang_login['head_login']);
 ?>
-<div style="display: flex; align-items: center; gap: 8px; margin: 8px 0">
+<div style="display: flex; flex-direction: column; align-items: flex-start; gap: 4px; margin: 8px 0">
     <a class="btn" href="donations.php">Order VIP account</a>
-    <a href="donations.php?report=1">Already donated? Send your TXID</a>
+    <a href="donations.php?report=1">Already order VIP? Send your TXID</a>
 </div>
 <?php
 
@@ -128,7 +128,7 @@ if ($registrationMode === 'signup') {
 ?>
 <?php
 print('<p>' . $lang_login['p_forget_pass_recover'] . '</p>');
-print('<p>' . ($lang_login['p_resend_confirm'] ?? 'Did not receive confirmation mail or confirmation link is broken? <a href="confirm_resend.php"><b>Send confirmation mail again</b></a>') . '</p>');
+print('<p>' . ($lang_login['p_resend_confirm'] ?? 'Didn\'t receive confirmation mail? <a href="confirm_resend.php"><b>Resend</b></a>') . '</p>');
 if ($registrationMode !== 'login' && $showhelpbox_main != 'no'){
 ?>
 <table width="100%" class="main" border="0" cellspacing="0" cellpadding="0"><tr><td class="embedded">
