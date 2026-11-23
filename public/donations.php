@@ -155,7 +155,6 @@ if ($orderResult !== null) {
     print('<p class="text">Your TXID has been sent to staff for review.</p>');
     print('<p><a href="login.php">Back to login</a></p>');
 } elseif (isset($_GET['report'])) {
-    print('<h3>Already donated? Send your TXID</h3>');
     print('<form method="post" action="donations.php?report=1">');
     print('<input type="hidden" name="action" value="txid">');
     print('<p><label>Username <input type="text" name="username" required autocomplete="username"></label></p>');
