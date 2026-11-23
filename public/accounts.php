@@ -49,24 +49,28 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     }
 
     if ($decision === 'accept_with_mail') {
-        $pendingRequest = \Nexus\Account\AccountApproval::getPendingRequest($type, $requestId);
-        if (!$pendingRequest) {
-            stderr('Request unavailable', 'This account request is no longer pending.');
-        }
-
-        $approvalToken = \Nexus\Account\AccountApproval::createToken($type, $requestId, $pendingRequest['email']);
-        $approvalUrl = getSchemeAndHttpHost() . '/account-approval.php?token=' . rawurlencode($approvalToken);
-        $username = htmlspecialchars($pendingRequest['username'], ENT_QUOTES, 'UTF-8');
-        $requestDescription = $type === 'donation'
-            ? 'your ' . htmlspecialchars((string) $pendingRequest['plan'], ENT_QUOTES, 'UTF-8') . ' VIP account request'
-            : 'your account request';
-        $emailBody = sprintf(
-            '<p>Hello %s,</p><p>Staff is ready to approve %s. Open the link below and confirm to activate your account.</p><p><a href="%s">Review and approve account</a></p><p>This link expires in 7 days and can only be used while the request is pending.</p>',
-            $username,
-            $requestDescription,
-            htmlspecialchars($approvalUrl, ENT_QUOTES, 'UTF-8')
-        );
+        $stage = 'lookup';
         try {
+            $pendingRequest = \Nexus\Account\AccountApproval::getPendingRequest($type, $requestId);
+            if (!$pendingRequest) {
+                stderr('Request unavailable', 'This account request is no longer pending.');
+            }
+
+            $stage = 'prepare';
+            $approvalToken = \Nexus\Account\AccountApproval::createToken($type, $requestId, $pendingRequest['email']);
+            $approvalUrl = getSchemeAndHttpHost() . '/account-approval.php?token=' . rawurlencode($approvalToken);
+            $username = htmlspecialchars($pendingRequest['username'], ENT_QUOTES, 'UTF-8');
+            $requestDescription = $type === 'donation'
+                ? 'your ' . htmlspecialchars((string) $pendingRequest['plan'], ENT_QUOTES, 'UTF-8') . ' VIP account request'
+                : 'your account request';
+            $emailBody = sprintf(
+                '<p>Hello %s,</p><p>Staff is ready to approve %s. Open the link below and confirm to activate your account.</p><p><a href="%s">Review and approve account</a></p><p>This link expires in 7 days and can only be used while the request is pending.</p>',
+                $username,
+                $requestDescription,
+                htmlspecialchars($approvalUrl, ENT_QUOTES, 'UTF-8')
+            );
+
+            $stage = 'send';
             $emailSent = sent_mail(
                 $pendingRequest['email'],
                 $SITENAME,
@@ -83,7 +87,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             );
         } catch (\Throwable $exception) {
             error_log(
-                "Failed to send approval email for {$type} request {$requestId}: " . $exception->getMessage(),
+                "Failed to process approval email for {$type} request {$requestId} at stage {$stage}: "
+                . get_class($exception) . ': ' . $exception->getMessage()
             );
             $emailSent = false;
         }
@@ -363,7 +368,7 @@ if (($_GET['mail_sent'] ?? '') === '1') {
     print('<p class="text">Approval email sent. The account will remain pending until the user confirms the link.</p>');
 }
 if (($_GET['mail_error'] ?? '') === '1') {
-    print('<p class="text">Approval email could not be sent. Check the SMTP settings and server error log; the request is still pending.</p>');
+    print('<p class="text">The approval email could not be prepared or sent. Check the PHP-FPM error log; the request is still pending.</p>');
 }
 print('<p class="text">');
 foreach ($types as $key => $label) {
