@@ -14,7 +14,10 @@ if ($type == "adminactivate")
 elseif ($type == "approvalpending")
 {
 	stdhead($lang_ok['head_user_signup']);
-	stdmsg('Application received', 'Your account request is awaiting staff approval.');
+	$applicationNote = ($_GET['flow'] ?? '') === 'apply'
+		? 'Your application is awaiting staff approval. After approval, use the Forgot Password link on the login page to receive a password reset email.'
+		: 'Your account request is awaiting staff approval.';
+	stdmsg('Application received', $applicationNote);
 	stdfoot();
 }
 elseif ($type == "inviter")

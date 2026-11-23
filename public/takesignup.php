@@ -32,13 +32,49 @@ if ($requestType === 'apply') {
     if (!is_string($applicationReason) || trim($applicationReason) === '') {
         bark('Please explain why you want to join.');
     }
-    if (!is_string($trackerProfiles) || trim($trackerProfiles) === '') {
-        bark('Please provide links to profiles from private trackers.');
+    if (!is_array($trackerProfiles) || count($trackerProfiles) > 10) {
+        bark('Please provide valid links to up to 10 private tracker profiles.');
+    }
+    $profileDetails = [];
+    foreach ($trackerProfiles as $profile) {
+        if (!is_array($profile)) {
+            bark('Please provide valid links to your tracker profiles.');
+        }
+        $screenshotUrl = $profile['screenshot'] ?? '';
+        $profileUrl = $profile['profile'] ?? '';
+        if (!is_string($screenshotUrl) || !is_string($profileUrl)) {
+            bark('Please provide valid links to your tracker profiles.');
+        }
+        $screenshotUrl = trim($screenshotUrl);
+        $profileUrl = trim($profileUrl);
+        if ($screenshotUrl === '' && $profileUrl === '') {
+            continue;
+        }
+        if ($screenshotUrl === '' || $profileUrl === '') {
+            bark('Each tracker profile needs both a screenshot link and a profile link.');
+        }
+        if (strlen($screenshotUrl) > 2048 || strlen($profileUrl) > 2048) {
+            bark('Tracker profile links must be 2048 characters or fewer.');
+        }
+        foreach ([$screenshotUrl, $profileUrl] as $url) {
+            $urlParts = parse_url($url);
+            if (
+                filter_var($url, FILTER_VALIDATE_URL) === false
+                || !is_array($urlParts)
+                || !in_array(strtolower($urlParts['scheme'] ?? ''), ['http', 'https'], true)
+            ) {
+                bark('Tracker profile and screenshot links must be valid HTTP or HTTPS URLs.');
+            }
+        }
+        $profileDetails[] = "Screenshot: $screenshotUrl\nProfile: $profileUrl";
+    }
+    if (!$profileDetails) {
+        bark('Please add at least one private tracker profile with its screenshot.');
     }
     $applicationDetails = "How did you hear about us and why do you want in?\n"
         . trim($applicationReason)
-        . "\n\nYour Profiles From Other Trackers (Profiles from Private trackers only):\n"
-        . trim($trackerProfiles);
+        . "\n\nProfiles from Private trackers only:\n"
+        . implode("\n\n", $profileDetails);
     if (mb_strlen($applicationDetails) > 5000) {
         bark('Your application details are too long. Please shorten your answers.');
     }
@@ -52,7 +88,7 @@ if ($iv == "yes")
 else{
 registration_check('mode');
 failedloginscheck ("Signup");
-if ($iv == "yes")
+if ($iv == "yes" && $type !== 'apply')
 	check_code ($_POST['imagehash'] ?? null, $_POST['imagestring'] ?? null);
 }
 function isportopen($port)
@@ -105,14 +141,13 @@ $res = sql_query("SELECT username FROM users WHERE id = $inviter") or sqlerr(__F
 $arr = mysql_fetch_assoc($res);
 $invusername = $arr['username'];
 }
-if (!is_string($_POST['wantusername'] ?? null)
-    || !is_string($_POST['wantpassword'] ?? null)
-    || !is_string($_POST['email'] ?? null)
-) {
+if (!is_string($_POST['wantusername'] ?? null) || !is_string($_POST['email'] ?? null)) {
     bark($lang_takesignup['std_blank_field']);
 }
 $wantusername = unesc(trim($_POST['wantusername']));
-$wantpassword = strtolower(trim($_POST['wantpassword']));
+$wantpassword = $type === 'apply'
+    ? hash('sha256', bin2hex(random_bytes(32)))
+    : (is_string($_POST['wantpassword'] ?? null) ? strtolower(trim($_POST['wantpassword'])) : '');
 $email = trim($_POST['email']);
 if ($isPreRegisterEmailAndUsername && $type == 'invite' && !empty($inv["pre_register_username"]) && !empty($inv["pre_register_email"])) {
     $wantusername = $inv["pre_register_username"];
@@ -129,30 +164,32 @@ if(EmailBanned($email))
 if(!EmailAllowed($email))
     bark($lang_takesignup['std_wrong_email_address_domains'].allowedemails());
 
-$country = $_POST["country"] ?? null;
+$country = $type === 'apply' ? '107' : ($_POST["country"] ?? null);
 if (!is_string($country)) {
     bark($lang_takesignup['std_blank_field']);
 }
 	int_check($country);
 
-if ($showschool == 'yes'){
+if ($showschool == 'yes' && $type !== 'apply'){
 if (!is_string($_POST["school"] ?? null)) {
     bark($lang_takesignup['std_blank_field']);
 }
 $school = $_POST["school"];
 int_check($school);
+} elseif ($showschool == 'yes') {
+    $school = 35;
 }
 
-$gender = $_POST["gender"] ?? null;
+$gender = $type === 'apply' ? 'N/A' : ($_POST["gender"] ?? null);
 if (!is_string($gender)) {
     bark($lang_takesignup['std_invalid_gender']);
 }
 $gender = htmlspecialchars(trim($gender), ENT_QUOTES, 'UTF-8');
 $allowed_genders = array("Male","Female","male","female");
-if (!in_array($gender, $allowed_genders, true))
+if ($type !== 'apply' && !in_array($gender, $allowed_genders, true))
 	bark($lang_takesignup['std_invalid_gender']);
 
-if (empty($wantusername) || empty($wantpassword) || empty($email) || empty($country) || empty($gender))
+if (empty($wantusername) || empty($wantpassword) || empty($email) || ($type !== 'apply' && (empty($country) || empty($gender))))
 	bark($lang_takesignup['std_blank_field']);
 if (!preg_match('/\A[a-f0-9]{64}\z/', $wantpassword))
     bark($lang_takesignup['std_blank_field']);
@@ -180,7 +217,7 @@ if (!validusername($wantusername))
 	bark($lang_takesignup['std_invalid_username']);
 
 // make sure user agrees to everything...
-if ($_POST["rulesverify"] != "yes" || $_POST["faqverify"] != "yes" || $_POST["ageverify"] != "yes")
+if ($type !== 'apply' && (($_POST["rulesverify"] ?? null) != "yes" || ($_POST["faqverify"] ?? null) != "yes" || ($_POST["ageverify"] ?? null) != "yes"))
 	stderr($lang_takesignup['std_signup_failed'], $lang_takesignup['std_unqualified']);
 
 // check if email addy is already in use
@@ -310,7 +347,11 @@ if ($type == 'invite')
 }
 
 if ($requestType !== null) {
-	header("Location: " . get_protocol_prefix() . "$BASEURL/ok.php?type=approvalpending");
+	$approvalUrl = get_protocol_prefix() . "$BASEURL/ok.php?type=approvalpending";
+	if ($type === 'apply') {
+		$approvalUrl .= '&flow=apply';
+	}
+	header("Location: " . $approvalUrl);
 }
 elseif ($verification == 'admin'){
 	if ($type == 'invite')
