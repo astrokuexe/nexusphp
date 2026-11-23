@@ -21,6 +21,12 @@ require_once(get_langfile_path("", false, $CURLANGDIR));
 failedloginscheck ();
 cur_user_check () ;
 stdhead($lang_login['head_login']);
+?>
+<div style="display: flex; align-items: center; gap: 8px; margin: 8px 0">
+    <a class="btn" href="donations.php">Order VIP account</a>
+    <a href="donations.php?report=1">Already donated? Send your TXID</a>
+</div>
+<?php
 
 $s = "<select name=\"sitelanguage\" onchange='submit()'>\n";
 $secret = htmlspecialchars(

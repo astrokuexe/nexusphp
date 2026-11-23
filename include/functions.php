@@ -2634,14 +2634,6 @@ else
 			<div class="logo_img"><img src="<?php echo $logo_main?>" alt="<?php echo htmlspecialchars($SITENAME)?>" title="<?php echo htmlspecialchars($SITENAME)?> - <?php echo htmlspecialchars($SLOGAN)?>" /></div>
 <?php
 }
-if (nexus()->getScript() === 'login') {
-?>
-			<div style="display: flex; align-items: center; gap: 8px; margin-top: 8px">
-				<a class="btn" href="donations.php">Order VIP account</a>
-				<a href="donations.php?report=1">Already donated? Send your TXID</a>
-			</div>
-<?php
-}
 ?>
 		</td>
 		<td class="clear nowrap" align="right" valign="middle">
