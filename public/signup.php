@@ -103,21 +103,35 @@ if ($isPreRegisterEmailAndUsername && !empty($inv["pre_register_email"])) {
 }
 
 ?>
+<?php if ($type === 'apply') { ?>
+<tr><td class="rowhead"><?php echo $lang_signup['row_desired_username'] ?></td><td class="rowfollow" align="left"><?php echo $usernameInput ?><br />
+<font class="small"><?php echo $lang_signup['text_allowed_characters'] ?></font></td></tr>
+<tr><td class=rowhead><?php echo $lang_signup['row_email_address'] ?></td><td class=rowfollow align=left><?php echo $emailInput?>
+<table width=250 border=0 cellspacing=0 cellpadding=0><tr><td class=embedded><font class=small><?php echo ($restrictemaildomain == 'yes' ? $lang_signup['text_email_note'].allowedemails() : "") ?></td></tr>
+</font></td></tr></table>
+</td></tr>
+<tr><td class="rowhead">How did you hear about us and why do you want in?</td><td class="rowfollow" align="left"><textarea name="application_details" rows="5" required maxlength="2500" style="width: min(100%, 500px); box-sizing: border-box"></textarea></td></tr>
+<tr><td class="rowhead">Your Profiles From Other Trackers</td><td class="rowfollow" align="left">
+<strong>Profiles from Private trackers only</strong><br />
+<font class="small">Paste links to your tracker profiles, one per line.</font><br />
+<textarea name="tracker_profiles" rows="5" required maxlength="2500" style="width: min(100%, 500px); box-sizing: border-box"></textarea>
+</td></tr>
+<?php } else { ?>
 <tr><td class=rowhead><?php echo $lang_signup['row_desired_username'] ?></td><td class=rowfollow align=left><?php echo $usernameInput?><br />
 <font class=small><?php echo $lang_signup['text_allowed_characters'] ?></font></td></tr>
+<?php } ?>
 <tr><td class=rowhead><?php echo $lang_signup['row_pick_a_password'] ?></td><td class=rowfollow align=left><input type="password" <?php echo $formInputStyle; ?> class="wantpassword" autocomplete="new-password" /><br />
 	<font class=small><?php echo $lang_signup['text_minimum_six_characters'] ?></font></td></tr>
 <tr><td class=rowhead><?php echo $lang_signup['row_enter_password_again'] ?></td><td class=rowfollow align=left><input type="password" <?php echo $formInputStyle; ?> class="passagain" autocomplete="new-password" /></td></tr>
 <?php
 show_image_code ();
+if ($type !== 'apply') {
 ?>
-<?php if ($type === 'apply') { ?>
-<tr><td class="rowhead">Reason for applying</td><td class="rowfollow" align="left"><textarea name="application_details" rows="6" required maxlength="5000" style="width: min(100%, 500px); box-sizing: border-box"></textarea></td></tr>
-<?php } ?>
 <tr><td class=rowhead><?php echo $lang_signup['row_email_address'] ?></td><td class=rowfollow align=left><?php echo $emailInput?>
 <table width=250 border=0 cellspacing=0 cellpadding=0><tr><td class=embedded><font class=small><?php echo ($restrictemaildomain == 'yes' ? $lang_signup['text_email_note'].allowedemails() : "") ?></td></tr>
 </font></td></tr></table>
 </td></tr>
+<?php } ?>
 <?php $countries = "<option value=\"8\">---- ".$lang_signup['select_none_selected']." ----</option>n";
 $ct_r = sql_query("SELECT id,name FROM countries ORDER BY name") or die;
 while ($ct_a = mysql_fetch_array($ct_r))

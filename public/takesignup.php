@@ -27,13 +27,20 @@ registration_mode_check($type === 'apply' ? 'apply' : 'signup');
 $requestType = $type === 'apply' ? 'apply' : ($type === 'invite' ? null : 'signup');
 $applicationDetails = null;
 if ($requestType === 'apply') {
-    $applicationDetails = $_POST['application_details'] ?? null;
-    if (!is_string($applicationDetails) || trim($applicationDetails) === '') {
-        bark('Please provide a reason for applying.');
+    $applicationReason = $_POST['application_details'] ?? null;
+    $trackerProfiles = $_POST['tracker_profiles'] ?? null;
+    if (!is_string($applicationReason) || trim($applicationReason) === '') {
+        bark('Please explain why you want to join.');
     }
-    $applicationDetails = trim($applicationDetails);
+    if (!is_string($trackerProfiles) || trim($trackerProfiles) === '') {
+        bark('Please provide links to profiles from private trackers.');
+    }
+    $applicationDetails = "How did you hear about us and why do you want in?\n"
+        . trim($applicationReason)
+        . "\n\nYour Profiles From Other Trackers (Profiles from Private trackers only):\n"
+        . trim($trackerProfiles);
     if (mb_strlen($applicationDetails) > 5000) {
-        bark('The application details are too long.');
+        bark('Your application details are too long. Please shorten your answers.');
     }
 }
 if ($type == 'invite'){
