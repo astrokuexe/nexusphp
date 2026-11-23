@@ -6,7 +6,6 @@ use Filament\Schemas\Schema;
 use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Actions\ViewAction;
-use Filament\Infolists\Components\TextEntry;
 use App\Filament\Resources\System\PluginStoreResource\Pages\ListPluginStores;
 use App\Filament\Resources\System\PluginStoreResource\Pages;
 use App\Filament\Resources\System\PluginStoreResource\RelationManagers;
@@ -18,8 +17,6 @@ use Filament\Resources\Resource;
 use Filament\Support\Enums\FontWeight;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Filament\Infolists\Components;
-use Filament\Infolists;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\App;
@@ -106,18 +103,7 @@ class PluginStoreResource extends Resource
                     })
                     ->modalHeading(fn (PluginStore $record) => sprintf("%s: %s", nexus_trans("plugin.actions.install_or_update"), data_get($record, self::getColumnLabelKey("title"))))
                     ->modalContent(function (PluginStore $record) {
-                        $infolist = Schema::make();
-                        $infolist->record($record);
-                        $infolist->components([
-                            TextEntry::make('plugin_id')
-                                ->label(fn () => nexus_trans("plugin.labels.install_title", ['web_root' => base_path()]))
-                                ->html(true)
-                                ->formatStateUsing(function (PluginStore $record) {
-                                    return self::getPluginInstruction($record);
-                                })
-                            ,
-                        ]);
-                        return $infolist;
+                        return new HtmlString(self::getPluginInstruction($record));
                     })
                     ->modalFooterActions(fn () => [])
                     ->color(fn (PluginStore $record) => $record->hasNewVersion() ? 'danger' : 'primary')
