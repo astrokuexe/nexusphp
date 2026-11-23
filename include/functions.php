@@ -1647,7 +1647,7 @@ function sent_mail($to,$fromname,$fromemail,$subject,$body,$type = "confirmation
          */
 
         $toolRep = new \App\Repositories\ToolRepository();
-        $sendResult = $toolRep->sendMail($to, $subject, $body);
+        $sendResult = $toolRep->sendMail($to, $subject, $body, $throwOnFailure);
         if ($sendResult === false) {
             $handleSendFailure();
         }
