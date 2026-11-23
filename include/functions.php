@@ -1551,11 +1551,17 @@ function check_email ($email) {
 	return true;
 }
 
-function sent_mail($to,$fromname,$fromemail,$subject,$body,$type = "confirmation",$showmsg=true,$multiple=false,$multiplemail='',$hdr_encoding = 'UTF-8', $specialcase = '') {
+function sent_mail($to,$fromname,$fromemail,$subject,$body,$type = "confirmation",$showmsg=true,$multiple=false,$multiplemail='',$hdr_encoding = 'UTF-8', $specialcase = '', $throwOnFailure = false) {
     $loggedBody = $type === 'account approval' ? '[redacted]' : $body;
     do_log("to: $to, fromname: $fromname, fromemail: $fromemail, subject: $subject, body: $loggedBody. type: $type");
 	global $lang_functions;
 	global $rootpath,$SITENAME,$SITEEMAIL,$smtptype,$smtp,$smtp_host,$smtp_port,$smtp_from,$smtpaddress,$smtpport,$accountname,$accountpassword;
+    $handleSendFailure = static function () use ($throwOnFailure, &$lang_functions) {
+        if ($throwOnFailure) {
+            throw new \RuntimeException('Unable to send email.');
+        }
+        stderr($lang_functions['std_error'], $lang_functions['text_unable_to_send_mail']);
+    };
 	# Is the OS Windows or Mac or Linux?
 	if (strtoupper(substr(PHP_OS,0,3)=='WIN')) {
 		$eol="\r\n";
@@ -1568,7 +1574,9 @@ function sent_mail($to,$fromname,$fromemail,$subject,$body,$type = "confirmation
 	if ($smtptype == 'none')
 		return false;
 	if ($smtptype == 'default') {
-		@mail($to, "=?".$hdr_encoding."?B?".base64_encode($subject)."?=", $body, "From: ".$SITEEMAIL.$eol."Content-type: text/html; charset=".$hdr_encoding.$eol, "-f$SITEEMAIL") or stderr($lang_functions['std_error'], $lang_functions['text_unable_to_send_mail']);
+		if (!@mail($to, "=?".$hdr_encoding."?B?".base64_encode($subject)."?=", $body, "From: ".$SITEEMAIL.$eol."Content-type: text/html; charset=".$hdr_encoding.$eol, "-f$SITEEMAIL")) {
+            $handleSendFailure();
+        }
 	}
 	elseif ($smtptype == 'advanced') {
 		$mid = md5(getip() . $fromname);
@@ -1597,7 +1605,9 @@ function sent_mail($to,$fromname,$fromemail,$subject,$body,$type = "confirmation
 			ini_set('sendmail_from', $smtp_from);
 		}
 
-		@mail($to,"=?".$hdr_encoding."?B?".base64_encode($subject)."?=",$body,$headers) or stderr($lang_functions['std_error'], $lang_functions['text_unable_to_send_mail']);
+		if (!@mail($to,"=?".$hdr_encoding."?B?".base64_encode($subject)."?=",$body,$headers)) {
+            $handleSendFailure();
+        }
 
 		ini_restore('SMTP');
 		ini_restore('smtp_port');
@@ -1639,7 +1649,7 @@ function sent_mail($to,$fromname,$fromemail,$subject,$body,$type = "confirmation
         $toolRep = new \App\Repositories\ToolRepository();
         $sendResult = $toolRep->sendMail($to, $subject, $body);
         if ($sendResult === false) {
-            stderr($lang_functions['std_error'], $lang_functions['text_unable_to_send_mail']);
+            $handleSendFailure();
         }
 	}
 	if ($showmsg) {

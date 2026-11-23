@@ -76,17 +76,20 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                 'account approval',
                 false,
                 false,
-                ''
+                '',
+                'UTF-8',
+                '',
+                true
             );
         } catch (\Throwable $exception) {
-            do_log(
+            error_log(
                 "Failed to send approval email for {$type} request {$requestId}: " . $exception->getMessage(),
-                'error'
             );
             $emailSent = false;
         }
         if ($emailSent !== true) {
-            stderr('Email could not be sent', 'The approval link was not sent. Configure and verify SMTP settings, then try again.', false);
+            header('Location: accounts.php?type=' . rawurlencode($type) . '&q=' . rawurlencode($search) . '&mail_error=1');
+            exit;
         }
 
         write_log("Account approval link sent for {$type} request {$requestId} by {$CURUSER['username']}.", 'mod');
@@ -358,6 +361,9 @@ begin_main_frame();
 print('<h2>Account</h2>');
 if (($_GET['mail_sent'] ?? '') === '1') {
     print('<p class="text">Approval email sent. The account will remain pending until the user confirms the link.</p>');
+}
+if (($_GET['mail_error'] ?? '') === '1') {
+    print('<p class="text">Approval email could not be sent. Check the SMTP settings and server error log; the request is still pending.</p>');
 }
 print('<p class="text">');
 foreach ($types as $key => $label) {
