@@ -500,7 +500,7 @@ if ($showstats_main == "yes")
 	$seeders = number_format($seeders);
 	$leechers = number_format($leechers);
 	$totaltorrentssize = mksize(get_row_sum("torrents", "size"));
-	$totaluploaded = get_row_sum("users","uploaded");
+	$totaluploaded = get_row_sum("users","uploaded_real");
 	$totaldownloaded = get_row_sum("users","downloaded");
 	$totaldata = $totaldownloaded+$totaluploaded;
 ?>

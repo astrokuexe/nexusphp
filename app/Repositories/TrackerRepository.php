@@ -132,6 +132,9 @@ class TrackerRepository extends BaseRepository
                     if ($dataTraffic['uploaded_increment_for_user'] > 0) {
                         $userUpdates['uploaded'] = DB::raw('uploaded + ' . $dataTraffic['uploaded_increment_for_user']);
                     }
+                    if ($peerSelf->exists && $dataTraffic['uploaded_increment'] > 0) {
+                        $userUpdates['uploaded_real'] = DB::raw('uploaded_real + ' . $dataTraffic['uploaded_increment']);
+                    }
                     if ($dataTraffic['downloaded_increment_for_user'] > 0) {
                         $userUpdates['downloaded'] = DB::raw('downloaded + ' . $dataTraffic['downloaded_increment_for_user']);
                     }

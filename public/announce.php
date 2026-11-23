@@ -458,6 +458,9 @@ else // continue an existing session
 	{
         $dataTraffic = getDataTraffic($torrent, $_GET, $az, $self, $snatchInfo, apply_filter('torrent_promotion', $torrent));
         $USERUPDATESET[] = "uploaded = uploaded + " . $dataTraffic['uploaded_increment_for_user'];
+        if ($dataTraffic['uploaded_increment'] > 0) {
+            $USERUPDATESET[] = "uploaded_real = uploaded_real + " . $dataTraffic['uploaded_increment'];
+        }
         $USERUPDATESET[] = "downloaded = downloaded + " . $dataTraffic['downloaded_increment_for_user'];
 	}
     if ($torrent['seeders'] <= 0 && $seeder == 'no' && $self['announcetime'] > 0) {

@@ -38,7 +38,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
     }
     if (
         !$requestId
-        || !in_array($decision, ['accept', 'deny'], true)
+        || !in_array($decision, ['accept', 'accept_with_mail', 'deny'], true)
         || !is_array($tokenData)
         || (int) ($tokenData['user_id'] ?? 0) !== (int) $CURUSER['id']
         || (int) ($tokenData['request_id'] ?? 0) !== $requestId
@@ -48,9 +48,56 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         stderr('Invalid request', 'The account decision could not be verified. Reload the page and try again.');
     }
 
+    if ($decision === 'accept_with_mail') {
+        $pendingRequest = \Nexus\Account\AccountApproval::getPendingRequest($type, $requestId);
+        if (!$pendingRequest) {
+            stderr('Request unavailable', 'This account request is no longer pending.');
+        }
+
+        $approvalToken = \Nexus\Account\AccountApproval::createToken($type, $requestId, $pendingRequest['email']);
+        $approvalUrl = getSchemeAndHttpHost() . '/account-approval.php?token=' . rawurlencode($approvalToken);
+        $username = htmlspecialchars($pendingRequest['username'], ENT_QUOTES, 'UTF-8');
+        $requestDescription = $type === 'donation'
+            ? 'your ' . htmlspecialchars((string) $pendingRequest['plan'], ENT_QUOTES, 'UTF-8') . ' VIP account request'
+            : 'your account request';
+        $emailBody = sprintf(
+            '<p>Hello %s,</p><p>Staff is ready to approve %s. Open the link below and confirm to activate your account.</p><p><a href="%s">Review and approve account</a></p><p>This link expires in 7 days and can only be used while the request is pending.</p>',
+            $username,
+            $requestDescription,
+            htmlspecialchars($approvalUrl, ENT_QUOTES, 'UTF-8')
+        );
+        $emailSent = sent_mail(
+            $pendingRequest['email'],
+            $SITENAME,
+            $SITEEMAIL,
+            $SITENAME . ' - Account approval',
+            $emailBody,
+            'account approval',
+            false,
+            false,
+            ''
+        );
+        if ($emailSent !== true) {
+            stderr('Email could not be sent', 'The approval link was not sent. Check the email configuration and try again.', false);
+        }
+
+        write_log("Account approval link sent for {$type} request {$requestId} by {$CURUSER['username']}.", 'mod');
+        header('Location: accounts.php?type=' . rawurlencode($type) . '&q=' . rawurlencode($search) . '&mail_sent=1');
+        exit;
+    }
+
+    if ($decision === 'deny') {
+        if (!\Nexus\Account\AccountApproval::deny($type, $requestId)) {
+            stderr('Request unavailable', 'This account request is no longer pending.');
+        }
+        write_log("Account request {$requestId} denied by {$CURUSER['username']}.", 'mod');
+        header('Location: accounts.php?type=' . rawurlencode($type) . '&q=' . rawurlencode($search));
+        exit;
+    }
+
     if ($type === 'invite') {
         try {
-            $review = \Illuminate\Support\Facades\DB::transaction(function () use ($requestId, $decision, $defaultclass_class, $invite_count) {
+            $review = \Illuminate\Support\Facades\DB::transaction(function () use ($requestId, $defaultclass_class, $invite_count) {
                 $request = \Illuminate\Support\Facades\DB::table('invite_registration_requests')
                     ->where('id', $requestId)
                     ->where('status', 'pending')
@@ -68,51 +115,48 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
                     return null;
                 }
 
-                $userId = null;
-                if ($decision === 'accept') {
-                    $usernameOrEmailExists = \Illuminate\Support\Facades\DB::table('users')
-                        ->where('username', $request->username)
-                        ->orWhere('email', $request->email)
-                        ->exists();
-                    if ($usernameOrEmailExists) {
-                        throw new \DomainException('The requested username or email is now in use.');
-                    }
-
-                    $now = now()->toDateTimeString();
-                    $userId = \Illuminate\Support\Facades\DB::table('users')->insertGetId([
-                        'username' => $request->username,
-                        'email' => $request->email,
-                        'passhash' => $request->passhash,
-                        'secret' => $request->secret,
-                        'auth_key' => bin2hex(random_bytes(32)),
-                        'editsecret' => $request->secret,
-                        'status' => \App\Models\User::STATUS_PENDING,
-                        'class' => (int) $defaultclass_class,
-                        'invites' => (int) $invite_count,
-                        'invited_by' => (int) $invite->inviter,
-                        'added' => $now,
-                        'last_access' => $now,
-                        'ip' => $request->ip,
-                        'lang' => (int) $request->lang,
-                        'stylesheet' => (int) $request->stylesheet,
-                        'uploaded' => (int) getsize_int(100, 'G'),
-                        'passkey' => md5($request->username . $now . $request->passhash),
-                    ]);
-
-                    \Illuminate\Support\Facades\DB::table('invites')
-                        ->where('id', $invite->id)
-                        ->update([
-                            'valid' => \App\Models\Invite::VALID_NO,
-                            'invitee_register_uid' => $userId,
-                            'invitee_register_email' => $request->email,
-                            'invitee_register_username' => $request->username,
-                        ]);
+                $usernameOrEmailExists = \Illuminate\Support\Facades\DB::table('users')
+                    ->where('username', $request->username)
+                    ->orWhere('email', $request->email)
+                    ->exists();
+                if ($usernameOrEmailExists) {
+                    throw new \DomainException('The requested username or email is now in use.');
                 }
+
+                $now = now()->toDateTimeString();
+                $userId = \Illuminate\Support\Facades\DB::table('users')->insertGetId([
+                    'username' => $request->username,
+                    'email' => $request->email,
+                    'passhash' => $request->passhash,
+                    'secret' => $request->secret,
+                    'auth_key' => bin2hex(random_bytes(32)),
+                    'editsecret' => '',
+                    'status' => \App\Models\User::STATUS_CONFIRMED,
+                    'class' => (int) $defaultclass_class,
+                    'invites' => (int) $invite_count,
+                    'invited_by' => (int) $invite->inviter,
+                    'added' => $now,
+                    'last_access' => $now,
+                    'ip' => $request->ip,
+                    'lang' => (int) $request->lang,
+                    'stylesheet' => (int) $request->stylesheet,
+                    'uploaded' => (int) getsize_int(100, 'G'),
+                    'passkey' => md5($request->username . $now . $request->passhash),
+                ]);
+
+                \Illuminate\Support\Facades\DB::table('invites')
+                    ->where('id', $invite->id)
+                    ->update([
+                        'valid' => \App\Models\Invite::VALID_NO,
+                        'invitee_register_uid' => $userId,
+                        'invitee_register_email' => $request->email,
+                        'invitee_register_username' => $request->username,
+                    ]);
 
                 \Illuminate\Support\Facades\DB::table('invite_registration_requests')
                     ->where('id', $requestId)
                     ->update([
-                        'status' => $decision === 'accept' ? 'accepted' : 'denied',
+                        'status' => 'accepted',
                         'passhash' => '',
                         'secret' => '',
                         'updated_at' => now(),
@@ -131,58 +175,36 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         if (!$review) {
             stderr('Request unavailable', 'This invite registration is no longer pending.');
         }
-        if ($decision === 'accept') {
-            $userInfo = \App\Models\User::query()->findOrFail($review['user_id']);
-            fire_event('user_created', $userInfo);
+        $userInfo = \App\Models\User::query()->findOrFail($review['user_id']);
+        fire_event('user_created', $userInfo);
 
-            $temporaryInviteCount = (int) get_setting('main.tmp_invite_count');
-            if ($temporaryInviteCount > 0) {
-                (new \App\Repositories\UserRepository())->addTemporaryInvite(null, $review['user_id'], 'increment', $temporaryInviteCount, 7);
-            }
-
-            \App\Models\Message::add([
-                'sender' => 0,
-                'receiver' => $review['user_id'],
-                'subject' => \App\Models\Setting::getSiteName() . ' registration approved',
-                'added' => now()->toDateTimeString(),
-                'msg' => 'Your invite registration has been approved. Please confirm your email address to activate your account.',
-            ]);
-            \App\Models\Message::add([
-                'sender' => 0,
-                'receiver' => $review['inviter_id'],
-                'subject' => \App\Models\Setting::getSiteName() . ' invite registration approved',
-                'added' => now()->toDateTimeString(),
-                'msg' => $userInfo->username . ' has had their invite registration approved.',
-            ]);
-            $Cache->delete_value('user_' . $review['inviter_id'] . '_unread_message_count');
-            $Cache->delete_value('user_' . $review['inviter_id'] . '_inbox_count');
-
-            $confirmUrl = getSchemeAndHttpHost() . '/confirm.php?id=' . (int) $userInfo->id . '&secret=' . md5(hash_pad($userInfo->secret));
-            $emailBody = 'Your invite registration has been approved. Confirm your email address to activate your account:<br>'
-                . '<a href="' . htmlspecialchars($confirmUrl, ENT_QUOTES, 'UTF-8') . '">Confirm account</a><br>'
-                . htmlspecialchars($confirmUrl, ENT_QUOTES, 'UTF-8');
-            $emailSent = sent_mail(
-                $userInfo->email,
-                \App\Models\Setting::getSiteName(),
-                $SITEEMAIL,
-                \App\Models\Setting::getSiteName() . ' - Invite registration approved',
-                $emailBody,
-                'signup',
-                false,
-                false,
-                ''
-            );
-            if ($emailSent !== true) {
-                write_log("Invite registration {$requestId} approved, but confirmation email could not be sent.", 'error');
-                stderr('Email could not be sent', 'The account was created pending email confirmation. Ask the user to request a confirmation email again.', false);
-            }
+        $temporaryInviteCount = (int) get_setting('main.tmp_invite_count');
+        if ($temporaryInviteCount > 0) {
+            (new \App\Repositories\UserRepository())->addTemporaryInvite(null, $review['user_id'], 'increment', $temporaryInviteCount, 7);
         }
+
+        \App\Models\Message::add([
+            'sender' => 0,
+            'receiver' => $review['user_id'],
+            'subject' => \App\Models\Setting::getSiteName() . ' registration approved',
+            'added' => now()->toDateTimeString(),
+            'msg' => 'Your invite registration has been approved and your account is active.',
+        ]);
+        \App\Models\Message::add([
+            'sender' => 0,
+            'receiver' => $review['inviter_id'],
+            'subject' => \App\Models\Setting::getSiteName() . ' invite registration approved',
+            'added' => now()->toDateTimeString(),
+            'msg' => $userInfo->username . ' has had their invite registration approved.',
+        ]);
+        $Cache->delete_value('user_' . $review['inviter_id'] . '_unread_message_count');
+        $Cache->delete_value('user_' . $review['inviter_id'] . '_inbox_count');
         write_log("Invite registration request {$requestId} {$decision} by {$CURUSER['username']}.", 'mod');
         header('Location: accounts.php?type=' . rawurlencode($type) . '&q=' . rawurlencode($search));
         exit;
     }
 
-    $request = \Illuminate\Support\Facades\DB::transaction(function () use ($requestId, $decision) {
+    $request = \Illuminate\Support\Facades\DB::transaction(function () use ($requestId) {
         $request = \Illuminate\Support\Facades\DB::table('account_requests')
             ->where('id', $requestId)
             ->where('status', 'pending')
@@ -199,39 +221,33 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             return null;
         }
 
-        if ($decision === 'accept') {
-            $userUpdate = [
-                'status' => 'confirmed',
-                'enabled' => 'yes',
-                'editsecret' => '',
-            ];
-            if ($request->type === 'donation') {
-                $uploadGigabytes = match ($request->plan) {
-                    '30days' => 50,
-                    'lifetime' => 500,
-                    default => null,
-                };
-                if ($uploadGigabytes === null) {
-                    return null;
-                }
-                $userUpdate['class'] = \App\Models\User::CLASS_VIP;
-                $userUpdate['vip_added'] = 'yes';
-                $userUpdate['vip_until'] = $request->plan === '30days' ? now()->addDays(30)->toDateTimeString() : null;
-                $userUpdate['uploaded'] = (int) getsize_int($uploadGigabytes, 'G');
-            } elseif ($request->type === 'apply') {
-                $userUpdate['uploaded'] = (int) getsize_int(50, 'G');
+        $userUpdate = [
+            'status' => 'confirmed',
+            'enabled' => 'yes',
+            'editsecret' => '',
+        ];
+        if ($request->type === 'donation') {
+            $uploadGigabytes = match ($request->plan) {
+                '30days' => 50,
+                'lifetime' => 500,
+                default => null,
+            };
+            if ($uploadGigabytes === null) {
+                return null;
             }
-            \Illuminate\Support\Facades\DB::table('users')->where('id', $request->user_id)->update($userUpdate);
-        } else {
-            \Illuminate\Support\Facades\DB::table('users')
-                ->where('id', $request->user_id)
-                ->update(['enabled' => 'no', 'editsecret' => '']);
+            $userUpdate['class'] = \App\Models\User::CLASS_VIP;
+            $userUpdate['vip_added'] = 'yes';
+            $userUpdate['vip_until'] = $request->plan === '30days' ? now()->addDays(30)->toDateTimeString() : null;
+            $userUpdate['uploaded'] = (int) getsize_int($uploadGigabytes, 'G');
+        } elseif ($request->type === 'apply') {
+            $userUpdate['uploaded'] = (int) getsize_int(50, 'G');
         }
+        \Illuminate\Support\Facades\DB::table('users')->where('id', $request->user_id)->update($userUpdate);
 
         \Illuminate\Support\Facades\DB::table('account_requests')
             ->where('id', $requestId)
             ->update([
-                'status' => $decision === 'accept' ? 'accepted' : 'denied',
+                'status' => 'accepted',
                 'updated_at' => now(),
             ]);
 
@@ -242,10 +258,9 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         stderr('Request unavailable', 'This account request is no longer pending.');
     }
     clear_user_cache((int) $request->user_id);
-    if ($decision === 'accept') {
-        publish_model_event(\App\Enums\ModelEventEnum::USER_UPDATED, (int) $request->user_id);
-    }
-    write_log("Account request {$requestId} {$decision} by {$CURUSER['username']}.", 'mod');
+    clear_user_cache((int) $request->user_id);
+    publish_model_event(\App\Enums\ModelEventEnum::USER_UPDATED, (int) $request->user_id);
+    write_log("Account request {$requestId} accepted by {$CURUSER['username']}.", 'mod');
     header('Location: accounts.php?type=' . rawurlencode($type) . '&q=' . rawurlencode($search));
     exit;
 }
@@ -333,6 +348,9 @@ if ($type === 'invite') {
 stdhead('Account');
 begin_main_frame();
 print('<h2>Account</h2>');
+if (($_GET['mail_sent'] ?? '') === '1') {
+    print('<p class="text">Approval email sent. The account will remain pending until the user confirms the link.</p>');
+}
 print('<p class="text">');
 foreach ($types as $key => $label) {
     print(($key === $type ? '<b>' . $escape($label) . '</b>' : '<a href="accounts.php?type=' . $escape($key) . '">' . $escape($label) . '</a>') . ' | ');
@@ -392,6 +410,7 @@ foreach ($requests as $row) {
             print('<input type="hidden" name="request_id" value="' . (int) $row->id . '">');
             print('<input type="hidden" name="request_token" value="' . $escape($requestToken) . '">');
             print('<button class="btn" type="submit" name="decision" value="accept">Accept</button> ');
+            print('<button class="btn" type="submit" name="decision" value="accept_with_mail">Accept with Mail</button> ');
             print('<button class="btn" type="submit" name="decision" value="deny">Deny</button></form></td>');
         } else {
             print('<td>-</td>');
@@ -413,6 +432,7 @@ foreach ($requests as $row) {
         print('<input type="hidden" name="request_id" value="' . (int) $row->id . '">');
         print('<input type="hidden" name="request_token" value="' . $escape($requestToken) . '">');
         print('<button class="btn" type="submit" name="decision" value="accept">Accept</button> ');
+        print('<button class="btn" type="submit" name="decision" value="accept_with_mail">Accept with Mail</button> ');
         print('<button class="btn" type="submit" name="decision" value="deny">Deny</button></form></td>');
     }
     print('</tr>');

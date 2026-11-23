@@ -263,7 +263,7 @@ class DashboardRepository extends BaseRepository
             'value' => mksize(Torrent::query()->sum('size')),
         ];
 
-        $total_uploaded_byte = User::query()->sum('uploaded');
+        $total_uploaded_byte = User::query()->sum('uploaded_real');
         $total_downloaded_byte = User::query()->sum('downloaded');
         $total_byte = $total_uploaded_byte + $total_downloaded_byte;
 

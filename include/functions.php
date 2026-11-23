@@ -1552,7 +1552,8 @@ function check_email ($email) {
 }
 
 function sent_mail($to,$fromname,$fromemail,$subject,$body,$type = "confirmation",$showmsg=true,$multiple=false,$multiplemail='',$hdr_encoding = 'UTF-8', $specialcase = '') {
-    do_log("to: $to, fromname: $fromname, fromemail: $fromemail, subject: $subject, body: $body. type: $type");
+    $loggedBody = $type === 'account approval' ? '[redacted]' : $body;
+    do_log("to: $to, fromname: $fromname, fromemail: $fromemail, subject: $subject, body: $loggedBody. type: $type");
 	global $lang_functions;
 	global $rootpath,$SITENAME,$SITEEMAIL,$smtptype,$smtp,$smtp_host,$smtp_port,$smtp_from,$smtpaddress,$smtpport,$accountname,$accountpassword;
 	# Is the OS Windows or Mac or Linux?
