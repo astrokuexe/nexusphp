@@ -120,8 +120,6 @@ if ($registrationMode === 'signup') {
     print('<p><a href="apply.php">Apply for an account</a></p>');
 }
 ?>
-<p><a class="btn" href="donations.php">Order VIP account</a></p>
-<p><a href="donations.php?report=1">Already donated? Send your TXID</a></p>
 <?php
 print('<p>' . $lang_login['p_forget_pass_recover'] . '</p>');
 print('<p>' . ($lang_login['p_resend_confirm'] ?? 'Did not receive confirmation mail or confirmation link is broken? <a href="confirm_resend.php"><b>Send confirmation mail again</b></a>') . '</p>');
