@@ -66,19 +66,27 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
             $requestDescription,
             htmlspecialchars($approvalUrl, ENT_QUOTES, 'UTF-8')
         );
-        $emailSent = sent_mail(
-            $pendingRequest['email'],
-            $SITENAME,
-            $SITEEMAIL,
-            $SITENAME . ' - Account approval',
-            $emailBody,
-            'account approval',
-            false,
-            false,
-            ''
-        );
+        try {
+            $emailSent = sent_mail(
+                $pendingRequest['email'],
+                $SITENAME,
+                $SITEEMAIL,
+                $SITENAME . ' - Account approval',
+                $emailBody,
+                'account approval',
+                false,
+                false,
+                ''
+            );
+        } catch (\Throwable $exception) {
+            do_log(
+                "Failed to send approval email for {$type} request {$requestId}: " . $exception->getMessage(),
+                'error'
+            );
+            $emailSent = false;
+        }
         if ($emailSent !== true) {
-            stderr('Email could not be sent', 'The approval link was not sent. Check the email configuration and try again.', false);
+            stderr('Email could not be sent', 'The approval link was not sent. Configure and verify SMTP settings, then try again.', false);
         }
 
         write_log("Account approval link sent for {$type} request {$requestId} by {$CURUSER['username']}.", 'mod');

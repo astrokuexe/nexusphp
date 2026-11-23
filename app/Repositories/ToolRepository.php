@@ -375,38 +375,31 @@ class ToolRepository extends BaseRepository
     public function sendMail($to, $subject, $body, $exception = false): bool
     {
         $log = "[SEND_MAIL]";
-        $factory = new EsmtpTransportFactory();
-        $smtp = Setting::getFromDb('smtp');
-        do_log("$log, to: $to, subject: $subject, body: $body, smtp: " . json_encode($smtp));
-        $encryption = null;
-        if (isset($smtp['encryption']) && in_array($smtp['encryption'], ['ssl', 'tls'])) {
-            $encryption = $smtp['encryption'];
-        }
-        // Create the Transport
-        $transport = $factory->create(new Dsn(
-//            $encryption === 'tls' ? (($smtp['smtpport'] == 465) ? 'smtps' : 'smtp') : '',
-            $smtp['smtpport'] == 465 && in_array($encryption, ['ssl', 'tls']) ? 'smtps' : 'smtp',
-            $smtp['smtpaddress'],
-            $smtp['accountname'] ?? null,
-            $smtp['accountpassword'] ?? null,
-            $smtp['smtpport'] ?? null,
-            ['verify_peer' => false]
-        ));
-
-        // Create the Mailer using your created Transport
-        $mailer = new Mailer($transport);
-
-        // Create a message
-        $message = (new Email())
-            ->from(new Address(Setting::get('main.SITEEMAIL'), Setting::get('basic.SITENAME')))
-            ->to($to)
-            ->subject($subject)
-            ->text($body)
-            ->html(nl2br($body))
-        ;
-
-        // Send the message
+        do_log("$log, attempting SMTP delivery");
         try {
+            $factory = new EsmtpTransportFactory();
+            $smtp = Setting::getFromDb('smtp');
+            $encryption = null;
+            if (isset($smtp['encryption']) && in_array($smtp['encryption'], ['ssl', 'tls'])) {
+                $encryption = $smtp['encryption'];
+            }
+            $transport = $factory->create(new Dsn(
+                $smtp['smtpport'] == 465 && in_array($encryption, ['ssl', 'tls']) ? 'smtps' : 'smtp',
+                $smtp['smtpaddress'],
+                $smtp['accountname'] ?? null,
+                $smtp['accountpassword'] ?? null,
+                $smtp['smtpport'] ?? null,
+                ['verify_peer' => false]
+            ));
+
+            $mailer = new Mailer($transport);
+            $message = (new Email())
+                ->from(new Address(Setting::get('main.SITEEMAIL'), Setting::get('basic.SITENAME')))
+                ->to($to)
+                ->subject($subject)
+                ->text($body)
+                ->html(nl2br($body));
+
             $mailer->send($message);
             return true;
         } catch (\Throwable $e) {
