@@ -11,6 +11,14 @@ dbconn();
 cur_user_check ();
 //require_once(get_langfile_path("",true));
 require_once(get_langfile_path("", false, get_langfolder_cookie()));
+$localizedTakeInviteFile = get_langfile_path("takeinvite.php", false, get_langfolder_cookie());
+$localizedTakeInvite = [];
+if (is_file($localizedTakeInviteFile)) {
+    require_once($localizedTakeInviteFile);
+    $localizedTakeInvite = $lang_takeinvite ?? [];
+}
+require_once(get_langfile_path("takeinvite.php", false, "en"));
+$lang_takeinvite = array_merge($lang_takeinvite ?? [], $localizedTakeInvite);
 
 $isPreRegisterEmailAndUsername = get_setting("system.is_invite_pre_email_and_username") == "yes";
 
