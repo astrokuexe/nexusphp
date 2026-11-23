@@ -106,8 +106,8 @@ class PluginStoreResource extends Resource
                     })
                     ->modalHeading(fn (PluginStore $record) => sprintf("%s: %s", nexus_trans("plugin.actions.install_or_update"), data_get($record, self::getColumnLabelKey("title"))))
                     ->modalContent(function (PluginStore $record) {
-                        $infolist = new Schema();
-                        $infolist->record = $record;
+                        $infolist = Schema::make();
+                        $infolist->record($record);
                         $infolist->components([
                             TextEntry::make('plugin_id')
                                 ->label(fn () => nexus_trans("plugin.labels.install_title", ['web_root' => base_path()]))
