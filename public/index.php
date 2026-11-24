@@ -610,7 +610,7 @@ if ($showstats_main == "yes")
 }
 // ------------- end: stats ------------------//
 // ------------- start: tracker load ------------------//
-if ($showtrackerload == "yes") {
+if ($showtrackerload == "yes" && user_can('staffmem')) {
 	$uptimeresult=exec('uptime');
 	if ($uptimeresult){
 ?>
