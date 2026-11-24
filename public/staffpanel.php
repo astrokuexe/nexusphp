@@ -76,6 +76,7 @@ if (get_user_class() >= UC_MODERATOR) {
 
 		echo("<tr><td class=rowfollow align=left><strong><a href=$url>$name</a></strong></td> <td class=rowfollow align=left>$info</td></tr>");
 	}
+	echo("<tr><td class=rowfollow align=left><strong><a href=\"hitandrun.php\">" . htmlspecialchars(nexus_trans('hr.menu'), ENT_QUOTES, 'UTF-8') . "</a></strong></td><td class=rowfollow align=left>" . htmlspecialchars(nexus_trans('hr.staff_title'), ENT_QUOTES, 'UTF-8') . "</td></tr>");
 
 	print("</table>");
 	print("<br />");
