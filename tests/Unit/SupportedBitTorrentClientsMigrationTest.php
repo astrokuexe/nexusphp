@@ -113,6 +113,9 @@ class SupportedBitTorrentClientsMigrationTest extends TestCase
         (new \Database\Seeders\AgentAllowedFamilyTableSeeder())->run();
         $seededRules = DB::table('agent_allowed_family')->get()->keyBy('family');
 
+        $biglybtPattern = $seededRules['BiglyBT 3.x']->agent_pattern;
+        $this->assertSame(1, preg_match($biglybtPattern, 'BiglyBT/3.0.0.0'));
+
         foreach (['uTorrent 2.2.1', 'BitComet 2.21+', 'qBittorrent 4.4.5+'] as $family) {
             $this->assertSame(
                 [
@@ -142,6 +145,27 @@ class SupportedBitTorrentClientsMigrationTest extends TestCase
         $migration = require base_path('database/migrations/2026_11_24_000000_invalidate_agent_allow_cache.php');
         $migration->up();
 
+        $this->assertNull(Cache::get('all_agent_allows:php'));
+    }
+
+    public function testBiglybtMigrationFixesTheStoredAgentPatternAndClearsItsCache(): void
+    {
+        DB::table('agent_allowed_family')->insert([
+            'family' => 'BiglyBT 3.x',
+            'start_name' => 'BiglyBT 3.0.0.0',
+            'agent_pattern' => '/^BiglyBT\\ /3\\.([0-9])\\.([0-9])\\.([0-9])/',
+        ]);
+        Cache::put('all_agent_allows:php', ['stale-rule'], 3600);
+
+        $migration = require base_path('database/migrations/2026_11_24_010000_fix_biglybt_agent_pattern.php');
+        $migration->up();
+
+        $pattern = DB::table('agent_allowed_family')
+            ->where('family', 'BiglyBT 3.x')
+            ->value('agent_pattern');
+
+        $this->assertSame('/^BiglyBT\\/3\\.([0-9])\\.([0-9])\\.([0-9])/', $pattern);
+        $this->assertSame(1, preg_match($pattern, 'BiglyBT/3.0.0.0'));
         $this->assertNull(Cache::get('all_agent_allows:php'));
     }
 
