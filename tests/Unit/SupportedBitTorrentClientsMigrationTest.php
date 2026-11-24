@@ -55,6 +55,22 @@ class SupportedBitTorrentClientsMigrationTest extends TestCase
             ['family' => 'BitRocket 0.x'],
             ['family' => 'SymTorrent 1.x'],
         ]);
+        DB::table('agent_allowed_family')->insert([
+            'family' => 'RTorrent 0.x(with libtorrent 0.x)',
+            'start_name' => 'rTorrent 0.8.0 (with libtorrent 0.12.0)',
+            'peer_id_pattern' => '/^-lt([0-9A-Z])([0-9A-Z])([0-9A-Z])([0-9A-Z])-/',
+            'peer_id_match_num' => 4,
+            'peer_id_matchtype' => 'hex',
+            'peer_id_start' => '-lt0C00-',
+            'agent_pattern' => '/^rtorrent\\/0\\.([0-9]{1,2})\\.([0-9])\\/0\\.([1-9][0-9]*)\\.(0|[1-9][0-9]*)/',
+            'agent_match_num' => 4,
+            'agent_matchtype' => 'dec',
+            'agent_start' => 'rtorrent/0.8.0/0.12.0',
+            'exception' => 'no',
+            'allowhttps' => 'yes',
+            'comment' => '',
+            'hits' => 0,
+        ]);
         DB::table('faq')->insert([
             'id' => 29,
             'link_id' => 29,
@@ -76,10 +92,11 @@ class SupportedBitTorrentClientsMigrationTest extends TestCase
 
         $rules = DB::table('agent_allowed_family')->get()->keyBy('family');
 
-        $this->assertCount(3, $rules);
+        $this->assertCount(4, $rules);
         $this->assertArrayHasKey('uTorrent 2.2.1', $rules);
         $this->assertArrayHasKey('BitComet 2.21+', $rules);
         $this->assertArrayHasKey('qBittorrent 4.4.5+', $rules);
+        $this->assertArrayHasKey('RTorrent 0.x(with libtorrent 0.x)', $rules);
         foreach (['Azureus', 'BitTorrent', 'Rufus', 'Enhanced CTorrent', 'BitRocket', 'SymTorrent'] as $family) {
             $this->assertFalse($rules->keys()->contains(fn (string $rule) => str_starts_with($rule, $family)));
         }
@@ -102,12 +119,24 @@ class SupportedBitTorrentClientsMigrationTest extends TestCase
         $this->assertTrue($this->clientMatches($rules['qBittorrent 4.4.5+'], '-qB4450-', 'qBittorrent/4.4.5'));
         $this->assertTrue($this->clientMatches($rules['qBittorrent 4.4.5+'], '-qB44100-', 'qBittorrent/4.4.10'));
         $this->assertTrue($this->clientMatches($rules['qBittorrent 4.4.5+'], '-qB500-', 'qBittorrent/5.0.0'));
+
+        $rtorrentMigration = require base_path('database/migrations/2026_11_24_020000_update_rtorrent_minimum_version.php');
+        $rtorrentMigration->up();
+        $rtorrentRules = DB::table('agent_allowed_family')->get()->keyBy('family');
+        $this->assertArrayHasKey('rTorrent 0.9.8+ (libtorrent)', $rtorrentRules);
+        $rtorrent = $rtorrentRules['rTorrent 0.9.8+ (libtorrent)'];
+        $this->assertTrue($this->clientMatches($rtorrent, '-lt0D80-', 'rtorrent/0.9.8/0.13.8'));
+        $this->assertTrue($this->clientMatches($rtorrent, '-lt0D80-', 'rtorrent/0.10.0/0.13.8'));
+        $this->assertFalse($this->clientMatches($rtorrent, '-lt0D80-', 'rtorrent/0.9.7/0.13.7'));
+        $this->assertFalse($this->clientMatches($rtorrent, '-lt0D70-', 'rtorrent/0.9.8/0.13.8'));
     }
 
     public function testFreshInstallSeederUsesTheSameClientRules(): void
     {
         $migration = require base_path('database/migrations/2026_11_20_000000_update_supported_bittorrent_clients.php');
         $migration->up();
+        $rtorrentMigration = require base_path('database/migrations/2026_11_24_020000_update_rtorrent_minimum_version.php');
+        $rtorrentMigration->up();
         $migrationRules = DB::table('agent_allowed_family')->get()->keyBy('family');
 
         (new \Database\Seeders\AgentAllowedFamilyTableSeeder())->run();
@@ -116,7 +145,7 @@ class SupportedBitTorrentClientsMigrationTest extends TestCase
         $biglybtPattern = $seededRules['BiglyBT 3.x']->agent_pattern;
         $this->assertSame(1, preg_match($biglybtPattern, 'BiglyBT/3.0.0.0'));
 
-        foreach (['uTorrent 2.2.1', 'BitComet 2.21+', 'qBittorrent 4.4.5+'] as $family) {
+        foreach (['uTorrent 2.2.1', 'BitComet 2.21+', 'qBittorrent 4.4.5+', 'rTorrent 0.9.8+ (libtorrent)'] as $family) {
             $this->assertSame(
                 [
                     $migrationRules[$family]->peer_id_pattern,
@@ -136,6 +165,11 @@ class SupportedBitTorrentClientsMigrationTest extends TestCase
                 ]
             );
         }
+        $this->assertTrue($this->clientMatches(
+            $seededRules['rTorrent 0.9.8+ (libtorrent)'],
+            '-lt0D80-',
+            'rtorrent/0.9.8/0.13.8'
+        ));
     }
 
     public function testCacheInvalidationMigrationClearsTheAgentAllowCache(): void
@@ -175,24 +209,30 @@ class SupportedBitTorrentClientsMigrationTest extends TestCase
             $rule->peer_id_pattern,
             $rule->peer_id_start,
             $rule->peer_id_match_num,
-            $peerId
+            $peerId,
+            $rule->peer_id_matchtype
         ) && $this->versionMatches(
             $rule->agent_pattern,
             $rule->agent_start,
             $rule->agent_match_num,
-            $agent
+            $agent,
+            $rule->agent_matchtype
         );
     }
 
-    private function versionMatches(string $pattern, string $start, int $matchNum, string $candidate): bool
+    private function versionMatches(string $pattern, string $start, int $matchNum, string $candidate, string $matchType): bool
     {
         if (!preg_match($pattern, $start, $minimum) || !preg_match($pattern, $candidate, $version)) {
             return false;
         }
 
         for ($group = 1; $group <= $matchNum; $group++) {
-            $currentPart = (int)($version[$group] ?? 0);
-            $minimumPart = (int)($minimum[$group] ?? 0);
+            $currentPart = $matchType === 'hex'
+                ? hexdec($version[$group] ?? '0')
+                : (int)($version[$group] ?? 0);
+            $minimumPart = $matchType === 'hex'
+                ? hexdec($minimum[$group] ?? '0')
+                : (int)($minimum[$group] ?? 0);
             if ($currentPart !== $minimumPart) {
                 return $currentPart > $minimumPart;
             }

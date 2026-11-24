@@ -565,7 +565,7 @@ NexusPHP的测试报告可<a class="faqlink" href="https://nexusphp.org/wiki/%E5
 <li><a class="faqlink" href="https://deluge-torrent.org/download/">Deluge</a>: 0.5.9.1, 1.1.6及后续版本</li>
 <li><a class="faqlink" href="https://transmissionbt.com/download/">Transmission</a>: 1.21及后续版本</li>
 <li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: 4.4.5及后续版本</li>
-<li><a class="faqlink" href="https://github.com/rakshasa/rtorrent">rTorrent</a>: 0.8.0（配合libtorrent 0.12.0或后续版本）及后续版本</li>
+<li><a class="faqlink" href="https://github.com/rakshasa/rtorrent">rTorrent</a>: 0.9.8（配合libtorrent 0.13.8或后续版本）及后续版本</li>
 </ul>
 <b>MacOS X:</b>
 <ul>
@@ -2052,7 +2052,7 @@ NexusPHP的測試報告可<a class="faqlink" href="https://nexusphp.org/wiki/%E5
 <li><a class="faqlink" href="https://deluge-torrent.org/download/">Deluge</a>: 0.5.9.1, 1.1.6及后續版本</li>
 <li><a class="faqlink" href="https://transmissionbt.com/download/">Transmission</a>: 1.21及后續版本</li>
 <li><a class="faqlink" href="https://www.qbittorrent.org">qBittorrent</a>: 4.4.5及後續版本</li>
-<li><a class="faqlink" href="https://github.com/rakshasa/rtorrent">rTorrent</a>: 0.8.0（配合libtorrent 0.12.0或后續版本）及后續版本</li>
+<li><a class="faqlink" href="https://github.com/rakshasa/rtorrent">rTorrent</a>: 0.9.8（配合libtorrent 0.13.8或后續版本）及後續版本</li>
 </ul>
 <b>MacOS X:</b>
 <ul>
@@ -3051,7 +3051,7 @@ array (
 <li>uTorrent version 2.2.1</li>
 <li>qBittorrent version 4.4.5 or newer (standard libtorrent only; do not use lt20)</li>
 <li>Deluge version 2.0.3 or newer</li>
-<li>rTorrent version 0.9.x or newer</li>
+<li>rTorrent version 0.9.8 or newer (with libtorrent 0.13.8 or newer)</li>
 <li>Transmission version 1.1.6 or newer</li>
 <li>BitComet version 2.21 or newer</li>
 </ul>',
