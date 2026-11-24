@@ -71,6 +71,7 @@ return new class extends Migration
         ]);
         $this->removeUnsupportedClientsFromFaq();
         \Nexus\Database\NexusDB::cache_del('allowed_client_list');
+        \Nexus\Database\NexusDB::cache_del(nexus_env('CACHE_KEY_AGENT_ALLOW', 'all_agent_allows') . ':php');
     }
 
     public function down(): void
@@ -166,6 +167,7 @@ return new class extends Migration
             ],
         ]);
         \Nexus\Database\NexusDB::cache_del('allowed_client_list');
+        \Nexus\Database\NexusDB::cache_del(nexus_env('CACHE_KEY_AGENT_ALLOW', 'all_agent_allows') . ':php');
     }
 
     private function removeUnsupportedClientsFromFaq(): void

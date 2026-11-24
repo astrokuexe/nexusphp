@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
@@ -132,6 +133,16 @@ class SupportedBitTorrentClientsMigrationTest extends TestCase
                 ]
             );
         }
+    }
+
+    public function testCacheInvalidationMigrationClearsTheAgentAllowCache(): void
+    {
+        Cache::put('all_agent_allows:php', ['stale-rule'], 3600);
+
+        $migration = require base_path('database/migrations/2026_11_24_000000_invalidate_agent_allow_cache.php');
+        $migration->up();
+
+        $this->assertNull(Cache::get('all_agent_allows:php'));
     }
 
     private function clientMatches(object $rule, string $peerId, string $agent): bool
