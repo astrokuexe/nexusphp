@@ -2752,13 +2752,13 @@ else {
                 <font class = 'color_invite'><?php echo $lang_functions['text_invite'] ?></font>[<a href="invite.php?id=<?php echo $CURUSER['id']?>"><?php echo $lang_functions['text_send'] ?></a>]: <?php echo sprintf('%s(%s)', $CURUSER['invites'], \App\Models\Invite::query()->where('inviter', $CURUSER['id'])->where('invitee', '')->where('expired_at', '>', now())->count())?>
                 <?php if(get_user_class() >= \App\Models\User::getAccessAdminClassMin()) printf('[<a href="%s" target="_blank">%s</a>]', nexus_env('FILAMENT_PATH', 'nexusphp'), $lang_functions['text_management_system'])?>
                 <?php if (user_can('staffmem')) { ?> [<a href="accounts.php">Account</a>]<?php } ?>
+                <?php if(\App\Models\HitAndRun::getIsEnabled()) { ?> [<a href="myhr.php"><?php echo nexus_trans('hr.menu') ?>: <?php echo (new \App\Repositories\HitAndRunRepository())->getStatusStats($CURUSER['id']) ?></a>]<?php } ?>
                 <br />
 	            <font class="color_ratio"><?php echo $lang_functions['text_ratio'] ?></font> <?php echo $ratio?>
                 <font class='color_uploaded'><?php echo $lang_functions['text_uploaded'] ?></font> <?php echo mksize($CURUSER['uploaded'])?>
                 <font class='color_downloaded'> <?php echo $lang_functions['text_downloaded'] ?></font> <?php echo mksize($CURUSER['downloaded'])?>
                 <font class='color_active'><?php echo $lang_functions['text_active_torrents'] ?></font> <img class="arrowup" alt="Torrents seeding" title="<?php echo $lang_functions['title_torrents_seeding'] ?>" src="pic/trans.gif" /><?php echo $activeseed?>  <img class="arrowdown" alt="Torrents leeching" title="<?php echo $lang_functions['title_torrents_leeching'] ?>" src="pic/trans.gif" /><?php echo $activeleech?>&nbsp;&nbsp;
                 <font class='color_connectable'><?php echo $lang_functions['text_connectable'] ?></font><?php echo $connectable?> <?php echo maxslots();?>
-                <?php if(\App\Models\HitAndRun::getIsEnabled()) { ?><font class='color_bonus'>H&R: </font> <?php echo sprintf('[<a href="myhr.php">%s</a>]', (new \App\Repositories\HitAndRunRepository())->getStatusStats($CURUSER['id']))?><?php }?>
                 <?php if(\App\Models\Claim::getConfigIsEnabled()) { ?><font class='color_bonus'><?php echo $lang_functions['menu_claim']?></font> <?php echo sprintf('[<a href="claim.php?uid=%s">%s</a>]', $CURUSER['id'], (new \App\Repositories\ClaimRepository())->getStats($CURUSER['id']))?><?php }?>
             </span>
         </td>
