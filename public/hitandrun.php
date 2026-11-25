@@ -17,6 +17,12 @@ $activeStatuses = [
     \App\Models\HitAndRun::STATUS_INSPECTING,
     \App\Models\HitAndRun::STATUS_UNREACHED,
 ];
+$statusOptions = \App\Models\HitAndRun::listStatus(true);
+$requestedStatus = $_GET['status'] ?? \App\Models\HitAndRun::STATUS_INSPECTING;
+$status = filter_var($requestedStatus, FILTER_VALIDATE_INT);
+if ($status === false || !array_key_exists($status, $statusOptions)) {
+    $status = \App\Models\HitAndRun::STATUS_INSPECTING;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $token = (string) ($_POST['_token'] ?? '');
@@ -62,7 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             stderr(nexus_trans('hr.error'), nexus_trans('hr.invalid_request'));
     }
 
-    header('Location: hitandrun.php?updated=1');
+    $updatedStatus = ($_POST['action'] ?? '') === 'allow'
+        ? \App\Models\HitAndRun::STATUS_PARDONED
+        : (int) $record->status;
+    header('Location: hitandrun.php?status=' . $updatedStatus . '&updated=1');
     die;
 }
 
@@ -74,9 +83,20 @@ if (isset($_GET['updated'])) {
     print('<p class="success">' . htmlspecialchars(nexus_trans('hr.action_success')) . '</p>');
 }
 
+$statusTabs = [];
+foreach ($statusOptions as $statusId => $statusLabel) {
+    $statusTabs[] = sprintf(
+        '<a href="hitandrun.php?status=%d" class="%s"><b>%s</b></a>',
+        (int) $statusId,
+        $statusId == $status ? 'faqlink' : '',
+        htmlspecialchars($statusLabel, ENT_QUOTES, 'UTF-8')
+    );
+}
+print('<p>' . implode(' | ', $statusTabs) . '</p>');
+
 $query = \App\Models\HitAndRun::query()
     ->with(['user', 'torrent'])
-    ->whereIn('status', $activeStatuses)
+    ->where('status', $status)
     ->whereHas('user')
     ->orderByDesc('id');
 $records = $query->paginate(30);
@@ -97,7 +117,7 @@ $renderAction = function ($record, string $action, string $label, string $confir
 };
 
 if ($records->isEmpty()) {
-    print('<p>' . htmlspecialchars(nexus_trans('hr.staff_empty')) . '</p>');
+    print('<p>' . htmlspecialchars(nexus_trans('pagination.zeroRecords')) . '</p>');
 } else {
     print('<table width="100%" border="1" cellspacing="0" cellpadding="5">');
     print('<tr>' .
@@ -117,18 +137,20 @@ if ($records->isEmpty()) {
             ? '<a href="details.php?id=' . (int) $record->torrent_id . '">' . htmlspecialchars($record->torrent->name) . '</a>'
             : htmlspecialchars((string) $record->torrent_id);
         $actions = '';
-        if (in_array((int) $record->status, \App\Models\HitAndRun::CAN_PARDON_STATUS, true)) {
-            $actions .= $renderAction($record, 'allow', nexus_trans('hr.action_allow'), nexus_trans('hr.action_confirm_allow'));
-        }
-        $actions .= $renderAction($record, 'delete', nexus_trans('hr.action_delete'), nexus_trans('hr.action_confirm_delete'));
-        if (
-            $targetUser
-            && $targetUser->enabled === \App\Models\User::ENABLED_YES
-            && $targetUser->id != $CURUSER['id']
-            && $CURUSER['class'] > $targetUser->class
-            && $CURUSER['class'] >= (int) get_setting('authority.prfmanage')
-        ) {
-            $actions .= $renderAction($record, 'suspend', nexus_trans('hr.action_suspend'), nexus_trans('hr.action_confirm_suspend'));
+        if (in_array((int) $record->status, $activeStatuses, true)) {
+            if (in_array((int) $record->status, \App\Models\HitAndRun::CAN_PARDON_STATUS, true)) {
+                $actions .= $renderAction($record, 'allow', nexus_trans('hr.action_allow'), nexus_trans('hr.action_confirm_allow'));
+            }
+            $actions .= $renderAction($record, 'delete', nexus_trans('hr.action_delete'), nexus_trans('hr.action_confirm_delete'));
+            if (
+                $targetUser
+                && $targetUser->enabled === \App\Models\User::ENABLED_YES
+                && $targetUser->id != $CURUSER['id']
+                && $CURUSER['class'] > $targetUser->class
+                && $CURUSER['class'] >= (int) get_setting('authority.prfmanage')
+            ) {
+                $actions .= $renderAction($record, 'suspend', nexus_trans('hr.action_suspend'), nexus_trans('hr.action_confirm_suspend'));
+            }
         }
 
         print('<tr>' .
