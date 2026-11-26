@@ -1331,25 +1331,64 @@ if ($allTags->isNotEmpty()) {
 	}
 if ($enableextforum != 'yes') {
     $class = get_user_class();
-    $canCreateStandaloneTopic = false;
-    if (($CURUSER['forumpost'] ?? 'no') === 'yes') {
-        $createTopicForum = sql_query(
-            "SELECT id FROM standalone_forums WHERE minclassread <= " . sqlesc($class)
-            . " AND minclasswrite <= " . sqlesc($class)
-            . " AND minclasscreate <= " . sqlesc($class)
-            . " LIMIT 1"
-        ) or sqlerr(__FILE__, __LINE__);
-        $canCreateStandaloneTopic = mysql_num_rows($createTopicForum) > 0;
+    $canManageStandaloneForums = user_can('forummanage');
+    $forumMenuSql = "SELECT g.id AS group_id, g.name AS group_name, f.id AS forum_id, "
+        . "f.name AS forum_name, f.description, f.minclasswrite, f.minclasscreate "
+        . "FROM standalone_forum_groups AS g "
+        . "INNER JOIN standalone_forums AS f ON f.group_id = g.id ";
+    if (!$canManageStandaloneForums) {
+        $forumMenuSql .= "WHERE f.minclassread <= " . sqlesc($class) . " ";
     }
-    if ($canCreateStandaloneTopic || user_can('forummanage')) {
-        $forumUrl = $canCreateStandaloneTopic
-            ? 'newforums.php?action=newtopic'
-            : 'newforums.php?action=manage';
-        $buttonLabel = $canCreateStandaloneTopic
-            ? $lang_forums['title_new_topic']
-            : 'Kelola Forum';
-        echo '<p style="margin: 8px 0"><a class="btn" href="' . $forumUrl . '"><b>'
-            . htmlspecialchars($buttonLabel, ENT_QUOTES, 'UTF-8') . '</b></a></p>';
+    $forumMenuSql .= "ORDER BY g.sort ASC, g.id ASC, f.sort ASC, f.id ASC";
+    $forumMenuResult = sql_query($forumMenuSql) or sqlerr(__FILE__, __LINE__);
+    $forumMenuGroups = [];
+    $canCreateStandaloneTopic = false;
+    while ($forumMenuRow = mysql_fetch_assoc($forumMenuResult)) {
+        $groupId = (int) $forumMenuRow['group_id'];
+        if (!isset($forumMenuGroups[$groupId])) {
+            $forumMenuGroups[$groupId] = [
+                'name' => $forumMenuRow['group_name'],
+                'forums' => [],
+            ];
+        }
+        $forumMenuGroups[$groupId]['forums'][] = $forumMenuRow;
+        if (
+            ($CURUSER['forumpost'] ?? 'no') === 'yes'
+            && $class >= $forumMenuRow['minclasswrite']
+            && $class >= $forumMenuRow['minclasscreate']
+        ) {
+            $canCreateStandaloneTopic = true;
+        }
+    }
+
+    if ($forumMenuGroups || $canCreateStandaloneTopic || $canManageStandaloneForums) {
+        echo '<div style="margin: 8px 0">';
+        if ($forumMenuGroups) {
+            echo '<h2>Forum Komunitas</h2><table class="main" width="100%" cellspacing="0" cellpadding="5">';
+            foreach ($forumMenuGroups as $group) {
+                echo '<tr><td class="colhead">' . htmlspecialchars($group['name'], ENT_QUOTES, 'UTF-8') . '</td></tr>';
+                echo '<tr><td class="rowfollow">';
+                $forumLinks = [];
+                foreach ($group['forums'] as $forum) {
+                    $forumName = htmlspecialchars($forum['forum_name'], ENT_QUOTES, 'UTF-8');
+                    $forumDescription = htmlspecialchars($forum['description'], ENT_QUOTES, 'UTF-8');
+                    $forumLinks[] = '<a href="newforums.php?action=viewforum&amp;forumid='
+                        . (int) $forum['forum_id'] . '" title="' . $forumDescription . '">'
+                        . $forumName . '</a>';
+                }
+                echo implode(' &nbsp;|&nbsp; ', $forumLinks);
+                echo '</td></tr>';
+            }
+            echo '</table>';
+        }
+        if ($canCreateStandaloneTopic) {
+            echo '<a class="btn" href="newforums.php?action=newtopic"><b>'
+                . htmlspecialchars($lang_forums['title_new_topic'], ENT_QUOTES, 'UTF-8') . '</b></a> ';
+        }
+        if ($canManageStandaloneForums) {
+            echo '<a class="btn" href="newforums.php?action=manage"><b>Kelola Forum</b></a>';
+        }
+        echo '</div>';
     }
 }
 if($inclbookmarked == 1)
