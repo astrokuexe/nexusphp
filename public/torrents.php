@@ -1351,12 +1351,13 @@ if ($enableextforum != 'yes') {
                 'forums' => [],
             ];
         }
-        $forumMenuGroups[$groupId]['forums'][] = $forumMenuRow;
-        if (
+        $forumMenuRow['can_create_topic'] = (
             ($CURUSER['forumpost'] ?? 'no') === 'yes'
             && $class >= $forumMenuRow['minclasswrite']
             && $class >= $forumMenuRow['minclasscreate']
-        ) {
+        );
+        $forumMenuGroups[$groupId]['forums'][] = $forumMenuRow;
+        if ($forumMenuRow['can_create_topic']) {
             $canCreateStandaloneTopic = true;
         }
     }
@@ -1364,29 +1365,88 @@ if ($enableextforum != 'yes') {
     if ($forumMenuGroups || $canCreateStandaloneTopic || $canManageStandaloneForums) {
         echo '<div style="margin: 8px 0">';
         if ($forumMenuGroups) {
-            echo '<h2>Forum Komunitas</h2><table class="main" width="100%" cellspacing="0" cellpadding="5">';
+            $visibleForumIds = [];
+            foreach ($forumMenuGroups as $group) {
+                foreach ($group['forums'] as $forum) {
+                    $visibleForumIds[] = (int) $forum['forum_id'];
+                }
+            }
+            $topicRowsByForum = [];
+            if ($visibleForumIds) {
+                $topicMenuSql = "SELECT t.forum_id, t.id AS topic_id, t.subject, t.views, "
+                    . "t.created_at, author.username AS topic_author, last_author.username AS last_author, "
+                    . "last_post.created_at AS last_post_at, "
+                    . "GREATEST((SELECT COUNT(*) FROM standalone_forum_posts AS topic_posts "
+                    . "WHERE topic_posts.topic_id = t.id) - 1, 0) AS reply_count "
+                    . "FROM standalone_forum_topics AS t "
+                    . "INNER JOIN users AS author ON author.id = t.user_id "
+                    . "LEFT JOIN standalone_forum_posts AS last_post ON last_post.id = t.last_post_id "
+                    . "LEFT JOIN users AS last_author ON last_author.id = last_post.user_id "
+                    . "WHERE t.forum_id IN (" . implode(',', $visibleForumIds) . ") "
+                    . "ORDER BY t.forum_id ASC, t.last_post_id DESC";
+                $topicMenuResult = sql_query($topicMenuSql) or sqlerr(__FILE__, __LINE__);
+                while ($topicMenuRow = mysql_fetch_assoc($topicMenuResult)) {
+                    $topicRowsByForum[(int) $topicMenuRow['forum_id']][] = $topicMenuRow;
+                }
+            }
+
+            echo '<h2>Community Forums</h2><table class="main" width="100%" cellspacing="0" cellpadding="5">';
             foreach ($forumMenuGroups as $group) {
                 echo '<tr><td class="colhead">' . htmlspecialchars($group['name'], ENT_QUOTES, 'UTF-8') . '</td></tr>';
-                echo '<tr><td class="rowfollow">';
-                $forumLinks = [];
                 foreach ($group['forums'] as $forum) {
-                    $forumName = htmlspecialchars($forum['forum_name'], ENT_QUOTES, 'UTF-8');
-                    $forumDescription = htmlspecialchars($forum['description'], ENT_QUOTES, 'UTF-8');
-                    $forumLinks[] = '<a href="newforums.php?action=viewforum&amp;forumid='
-                        . (int) $forum['forum_id'] . '" title="' . $forumDescription . '">'
-                        . $forumName . '</a>';
+                    $forumId = (int) $forum['forum_id'];
+                    $forumUrl = 'newforums.php?action=viewforum&amp;forumid=' . $forumId;
+                    echo '<tr><td class="rowfollow"><a href="' . $forumUrl . '"><b>'
+                        . htmlspecialchars($forum['forum_name'], ENT_QUOTES, 'UTF-8') . '</b></a>';
+                    if ($forum['description'] !== '') {
+                        echo '<br><span class="small">'
+                            . htmlspecialchars($forum['description'], ENT_QUOTES, 'UTF-8') . '</span>';
+                    }
+                    if ($forum['can_create_topic']) {
+                        echo '<div style="margin-top: 5px"><a class="btn" href="newforums.php?action=newtopic&amp;forumid='
+                            . $forumId . '"><b>' . htmlspecialchars(
+                                $lang_forums['title_new_topic'],
+                                ENT_QUOTES,
+                                'UTF-8'
+                            ) . '</b></a></div>';
+                    }
+                    echo '</td></tr>';
+                    echo '<tr><td style="padding: 0"><table class="main" width="100%" cellspacing="0" cellpadding="5">';
+                    echo '<tr><td class="colhead" width="60%">' . $lang_forums['col_topics'] . '</td>'
+                        . '<td class="colhead" align="center">' . $lang_forums['col_replies'] . '</td>'
+                        . '<td class="colhead" align="center">' . $lang_forums['col_views'] . '</td>'
+                        . '<td class="colhead">' . $lang_forums['col_last_post'] . '</td></tr>';
+                    $topics = $topicRowsByForum[$forumId] ?? [];
+                    if (!$topics) {
+                        echo '<tr><td class="rowfollow" colspan="4">There are no topics in this forum.</td></tr>';
+                    } else {
+                        foreach ($topics as $topic) {
+                            echo '<tr><td class="rowfollow"><a href="newforums.php?action=viewtopic&amp;topicid='
+                                . (int) $topic['topic_id'] . '">'
+                                . htmlspecialchars($topic['subject'], ENT_QUOTES, 'UTF-8') . '</a><br><span class="small">'
+                                . htmlspecialchars($topic['topic_author'], ENT_QUOTES, 'UTF-8')
+                                . ' &bull; ';
+                            if ($topic['created_at']) {
+                                echo gettime($topic['created_at']);
+                            }
+                            echo '</span></td><td class="rowfollow" align="center">'
+                                . (int) $topic['reply_count'] . '</td><td class="rowfollow" align="center">'
+                                . (int) $topic['views'] . '</td><td class="rowfollow">'
+                                . htmlspecialchars($topic['last_author'] ?? '', ENT_QUOTES, 'UTF-8');
+                            if ($topic['last_post_at']) {
+                                echo '<br><span class="small">' . gettime($topic['last_post_at']) . '</span>';
+                            }
+                            echo '</td></tr>';
+                        }
+                    }
+                    echo '<tr><td class="rowfollow" colspan="4" align="right"><a href="' . $forumUrl
+                        . '">View all topics &raquo;</a></td></tr></table></td></tr>';
                 }
-                echo implode(' &nbsp;|&nbsp; ', $forumLinks);
-                echo '</td></tr>';
             }
             echo '</table>';
         }
-        if ($canCreateStandaloneTopic) {
-            echo '<a class="btn" href="newforums.php?action=newtopic"><b>'
-                . htmlspecialchars($lang_forums['title_new_topic'], ENT_QUOTES, 'UTF-8') . '</b></a> ';
-        }
         if ($canManageStandaloneForums) {
-            echo '<a class="btn" href="newforums.php?action=manage"><b>Kelola Forum</b></a>';
+            echo '<p><a class="btn" href="newforums.php?action=manage"><b>Manage Forums</b></a></p>';
         }
         echo '</div>';
     }

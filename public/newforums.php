@@ -20,31 +20,31 @@ if ($enableextforum === 'yes') {
 \Nexus\Database\RuntimeMigrations::ensureStandaloneForumTables();
 
 $text = [
-    'title' => 'Forum Komunitas',
-    'new_topic' => 'Buat Topik',
-    'manage' => 'Kelola Forum',
-    'new_group' => 'Buat Grup Forum',
-    'new_forum' => 'Buat Forum',
-    'group' => 'Grup',
+    'title' => 'Community Forums',
+    'new_topic' => 'New Topic',
+    'manage' => 'Manage Forums',
+    'new_group' => 'Create Forum Group',
+    'new_forum' => 'Create Forum',
+    'group' => 'Group',
     'forum' => 'Forum',
-    'topic' => 'Topik',
-    'topics' => 'Topik',
-    'posts' => 'Postingan',
-    'description' => 'Deskripsi',
-    'name' => 'Nama',
-    'order' => 'Urutan',
-    'read_class' => 'Minimal kelas untuk membaca',
-    'write_class' => 'Minimal kelas untuk membalas',
-    'create_class' => 'Minimal kelas untuk membuat topik',
-    'save' => 'Simpan',
-    'delete' => 'Hapus',
-    'last_post' => 'Postingan terakhir',
-    'no_groups' => 'Belum ada grup atau forum yang dibuat.',
-    'no_topics' => 'Belum ada topik di forum ini.',
-    'empty' => 'Forum ini masih kosong.',
-    'reply' => 'Balas Topik',
-    'submit' => 'Kirim',
-    'back' => 'Kembali ke forum',
+    'topic' => 'Topic',
+    'topics' => 'Topics',
+    'posts' => 'Posts',
+    'description' => 'Description',
+    'name' => 'Name',
+    'order' => 'Order',
+    'read_class' => 'Minimum class to read',
+    'write_class' => 'Minimum class to reply',
+    'create_class' => 'Minimum class to create topics',
+    'save' => 'Save',
+    'delete' => 'Delete',
+    'last_post' => 'Last Post',
+    'no_groups' => 'No groups or forums have been created.',
+    'no_topics' => 'There are no topics in this forum.',
+    'empty' => 'This forum is empty.',
+    'reply' => 'Reply to Topic',
+    'submit' => 'Submit',
+    'back' => 'Back to forums',
 ];
 $escape = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 $input = static function (string $name): string {
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $token = $_POST['_token'] ?? '';
     $token = is_string($token) ? $token : '';
     if ($token === '' || !hash_equals($csrfToken, $token)) {
-        stderr('Forum error', 'Permintaan tidak valid. Muat ulang halaman lalu coba lagi.');
+        stderr('Forum error', 'Invalid request. Reload the page and try again.');
     }
 
     $postAction = $input('action');
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $description = $input('description');
             $sort = max(0, min(65535, (int) $input('sort')));
             if ($name === '' || mb_strlen($name, 'UTF-8') > 60 || mb_strlen($description, 'UTF-8') > 255) {
-                stderr('Forum error', 'Nama grup wajib diisi (maksimal 60 karakter); deskripsi maksimal 255 karakter.');
+                stderr('Forum error', 'The group name is required (maximum 60 characters); the description must be 255 characters or fewer.');
             }
 
             $data = ['name' => $name, 'description' => $description, 'sort' => $sort];
@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($postAction === 'group_delete') {
             $groupId = (int) $input('id');
             if (DB::table('standalone_forums')->where('group_id', $groupId)->exists()) {
-                stderr('Forum error', 'Grup yang masih memiliki forum tidak dapat dihapus.');
+                stderr('Forum error', 'A group that contains forums cannot be deleted.');
             }
             DB::table('standalone_forum_groups')->where('id', $groupId)->delete();
             $redirect('newforums.php?action=manage');
@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 || min($readClass, $writeClass, $createClass) < 0
                 || max($readClass, $writeClass, $createClass) > $maxClass
             ) {
-                stderr('Forum error', 'Data forum tidak valid. Pastikan grup dipilih dan kelas izin tersedia.');
+                stderr('Forum error', 'The forum data is invalid. Select a group and make sure the permission classes are available.');
             }
 
             $data = [
@@ -141,14 +141,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($postAction === 'forum_delete') {
             $forumId = (int) $input('id');
             if (DB::table('standalone_forum_topics')->where('forum_id', $forumId)->exists()) {
-                stderr('Forum error', 'Forum yang masih memiliki topik tidak dapat dihapus.');
+                stderr('Forum error', 'A forum that contains topics cannot be deleted.');
             }
             DB::table('standalone_forums')->where('id', $forumId)->delete();
             $redirect('newforums.php?action=manage');
         }
 
         if (str_starts_with($postAction, 'group_') || str_starts_with($postAction, 'forum_')) {
-            stderr('Forum error', 'Aksi pengelolaan tidak dikenal.');
+            stderr('Forum error', 'Unknown management action.');
         }
     }
 
@@ -171,11 +171,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $subject = $input('subject');
         $body = $input('body');
         if ($subject === '' || mb_strlen($subject, 'UTF-8') > 128 || $body === '') {
-            stderr('Forum error', 'Judul wajib diisi (maksimal 128 karakter) dan isi topik tidak boleh kosong.');
+            stderr('Forum error', 'A subject is required (maximum 128 characters), and the topic body cannot be empty.');
         }
         if (!user_can('postmanage') && strtotime($CURUSER['last_post']) > (TIMENOW - 10)) {
             $seconds = max(1, 10 - (TIMENOW - strtotime($CURUSER['last_post'])));
-            stderr('Forum error', 'Mohon tunggu ' . $seconds . ' detik sebelum mengirim postingan berikutnya.', false);
+            stderr('Forum error', 'Please wait ' . $seconds . ' seconds before posting again.', false);
         }
 
         $userId = (int) $CURUSER['id'];
@@ -224,11 +224,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $body = $input('body');
         if ($body === '') {
-            stderr('Forum error', 'Isi balasan tidak boleh kosong.');
+            stderr('Forum error', 'The reply body cannot be empty.');
         }
         if (!user_can('postmanage') && strtotime($CURUSER['last_post']) > (TIMENOW - 10)) {
             $seconds = max(1, 10 - (TIMENOW - strtotime($CURUSER['last_post'])));
-            stderr('Forum error', 'Mohon tunggu ' . $seconds . ' detik sebelum mengirim postingan berikutnya.', false);
+            stderr('Forum error', 'Please wait ' . $seconds . ' seconds before posting again.', false);
         }
 
         $userId = (int) $CURUSER['id'];
@@ -248,7 +248,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $redirect('newforums.php?action=viewtopic&topicid=' . $topicId . '&page=last');
     }
 
-    stderr('Forum error', 'Aksi forum tidak dikenal.');
+    stderr('Forum error', 'Unknown forum action.');
 }
 
 $action = $_GET['action'] ?? 'index';
@@ -324,7 +324,7 @@ if ($action === 'manage') {
     <button class="btn" type="submit"><?php echo $text['save'] ?></button>
 </form>
 <?php if (!DB::table('standalone_forums')->where('group_id', $group->id)->exists()) { ?>
-<form method="post" action="newforums.php?action=manage" onsubmit="return confirm('Hapus grup ini?')">
+<form method="post" action="newforums.php?action=manage" onsubmit="return confirm('Delete this group?')">
     <input type="hidden" name="_token" value="<?php echo $escape($csrfToken) ?>">
     <input type="hidden" name="action" value="group_delete">
     <input type="hidden" name="id" value="<?php echo (int) $group->id ?>">
@@ -356,7 +356,7 @@ if ($action === 'manage') {
     <button class="btn" type="submit"><?php echo $text['save'] ?></button>
 </form>
 <?php if ((int) $forum->topiccount === 0) { ?>
-<form method="post" action="newforums.php?action=manage" onsubmit="return confirm('Hapus forum ini?')">
+<form method="post" action="newforums.php?action=manage" onsubmit="return confirm('Delete this forum?')">
     <input type="hidden" name="_token" value="<?php echo $escape($csrfToken) ?>">
     <input type="hidden" name="action" value="forum_delete">
     <input type="hidden" name="id" value="<?php echo (int) $forum->id ?>">
@@ -380,7 +380,7 @@ if ($action === 'newtopic') {
         ->where('minclasscreate', '<=', $userClass)
         ->orderBy('group_id')->orderBy('sort')->orderBy('id')->get();
     if ($eligibleForums->isEmpty()) {
-        stderr('Forum error', 'Belum ada forum yang dapat Anda gunakan untuk membuat topik.');
+        stderr('Forum error', 'There is no forum available for you to create topics in.');
     }
     $selectedForumId = filter_var($_GET['forumid'] ?? 0, FILTER_VALIDATE_INT);
     $selectedForumId = $selectedForumId === false ? 0 : $selectedForumId;
