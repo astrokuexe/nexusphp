@@ -7,6 +7,7 @@ require_once(get_langfile_path('forums.php'));
 loggedinorreturn();
 parked();
 \Nexus\Database\RuntimeMigrations::ensureCategoryParentId();
+\Nexus\Database\RuntimeMigrations::ensureStandaloneForumTables();
 
 //check searchbox
 switch (nexus()->getScript()) {
@@ -1328,16 +1329,23 @@ if ($allTags->isNotEmpty()) {
             echo "<div align=\"center\" style=\"margin-top: 10px\" id=\"\">".$belowsearchboxad[0]."</div>";
         }
 	}
-if ($enableextforum != 'yes' && ($CURUSER['forumpost'] ?? 'no') === 'yes') {
-    $createTopicForum = sql_query(
-        "SELECT id FROM forums WHERE minclassread <= " . sqlesc(get_user_class())
-        . " AND minclasswrite <= " . sqlesc(get_user_class())
-        . " AND minclasscreate <= " . sqlesc(get_user_class())
-        . " LIMIT 1"
-    ) or sqlerr(__FILE__, __LINE__);
-    if (mysql_num_rows($createTopicForum) > 0) {
-        echo '<p style="margin: 8px 0"><a class="btn" href="newforums.php"><b>'
-            . $lang_forums['title_new_topic'] . '</b></a></p>';
+if ($enableextforum != 'yes') {
+    $class = get_user_class();
+    $canCreateStandaloneTopic = ($CURUSER['forumpost'] ?? 'no') === 'yes'
+        && DB::table('standalone_forums')
+            ->where('minclassread', '<=', $class)
+            ->where('minclasswrite', '<=', $class)
+            ->where('minclasscreate', '<=', $class)
+            ->exists();
+    if ($canCreateStandaloneTopic || user_can('forummanage')) {
+        $forumUrl = $canCreateStandaloneTopic
+            ? 'newforums.php?action=newtopic'
+            : 'newforums.php?action=manage';
+        $buttonLabel = $canCreateStandaloneTopic
+            ? $lang_forums['title_new_topic']
+            : 'Kelola Forum';
+        echo '<p style="margin: 8px 0"><a class="btn" href="' . $forumUrl . '"><b>'
+            . htmlspecialchars($buttonLabel, ENT_QUOTES, 'UTF-8') . '</b></a></p>';
     }
 }
 if($inclbookmarked == 1)

@@ -29,6 +29,42 @@ final class RuntimeMigrations
         );
     }
 
+    public static function ensureStandaloneForumTables(): void
+    {
+        $tables = [
+            'standalone_forum_groups',
+            'standalone_forums',
+            'standalone_forum_topics',
+            'standalone_forum_posts',
+        ];
+        if (self::allTablesExist($tables)) {
+            return;
+        }
+
+        self::bootstrapLaravel();
+        Cache::lock('nexus:migrations:standalone_forums', 120)->block(30, function () use ($tables): void {
+            if (self::allTablesExist($tables)) {
+                return;
+            }
+
+            $migration = 'database/migrations/2026_11_26_000000_create_standalone_forum_tables.php';
+            $kernel = app(ConsoleKernel::class);
+            $exitCode = $kernel->call('migrate', [
+                '--path' => $migration,
+                '--force' => true,
+                '--no-interaction' => true,
+            ]);
+
+            if ($exitCode !== 0 || !self::allTablesExist($tables)) {
+                $output = trim($kernel->output());
+                throw new RuntimeException(
+                    sprintf('Unable to apply migration %s.', $migration)
+                    . ($output === '' ? '' : ' ' . $output)
+                );
+            }
+        });
+    }
+
     public static function ensureCategoryParentId(): void
     {
         self::ensureSchema(
@@ -73,6 +109,17 @@ final class RuntimeMigrations
         return $column === null
             ? NexusDB::hasTable($table)
             : NexusDB::hasColumn($table, $column);
+    }
+
+    private static function allTablesExist(array $tables): bool
+    {
+        foreach ($tables as $table) {
+            if (!NexusDB::hasTable($table)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private static function bootstrapLaravel(): void
