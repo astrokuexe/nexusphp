@@ -1425,8 +1425,7 @@ if ($enableextforum != 'yes') {
                             echo '</td></tr>';
                         }
                     }
-                    echo '<tr><td class="rowfollow" colspan="4" align="right"><a href="' . $forumUrl
-                        . '">View all topics &raquo;</a></td></tr></table></td></tr>';
+                    echo '</table></td></tr>';
                 }
             }
             echo '</table>';
