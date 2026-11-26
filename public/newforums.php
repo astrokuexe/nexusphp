@@ -292,7 +292,21 @@ if ($action === 'manage') {
         permissiondenied();
     }
 
-    $groups = DB::table('standalone_forum_groups')->orderBy('sort')->orderBy('id')->get();
+    $selectedGroupId = null;
+    if (array_key_exists('groupid', $_GET)) {
+        $selectedGroupId = filter_var($_GET['groupid'], FILTER_VALIDATE_INT);
+        if ($selectedGroupId === false || $selectedGroupId < 1) {
+            permissiondenied();
+        }
+    }
+    $groupsQuery = DB::table('standalone_forum_groups');
+    if ($selectedGroupId !== null) {
+        $groupsQuery->where('id', $selectedGroupId);
+    }
+    $groups = $groupsQuery->orderBy('sort')->orderBy('id')->get();
+    if ($selectedGroupId !== null && $groups->isEmpty()) {
+        permissiondenied();
+    }
     $forums = DB::table('standalone_forums as f')
         ->join('standalone_forum_groups as g', 'g.id', '=', 'f.group_id')
         ->select('f.*', 'g.name as group_name')
@@ -511,7 +525,7 @@ if ($action === 'viewforum') {
 ?>
 <p>
     <a href="newforums.php"><?php echo $text['back'] ?></a> /
-    <a href="newforums.php#group-<?php echo (int) $forum->group_id ?>"><?php echo $escape($forum->group_name) ?></a> /
+    <a href="newforums.php?groupid=<?php echo (int) $forum->group_id ?>"><?php echo $escape($forum->group_name) ?></a> /
     <a href="newforums.php?action=viewforum&amp;forumid=<?php echo (int) $forum->id ?>"><b><?php echo $escape($forum->name) ?></b></a>
 </p>
 <p><?php echo $escape($forum->description) ?></p>
@@ -523,7 +537,7 @@ if ($action === 'viewforum') {
 <?php if ($forumTorrents->isNotEmpty()) { ?>
 <table class="main" width="100%" cellspacing="0" cellpadding="5">
     <tr>
-        <td class="colhead">Torrent</td>
+        <td class="colhead">Name</td>
         <td class="colhead" align="center">Size</td>
         <td class="colhead">Last Activity</td>
     </tr>
@@ -643,6 +657,7 @@ stdhead($pageTitle);
 begin_main_frame();
 ?>
 <p>
+    <?php if ($selectedGroupId !== null) { ?><a href="newforums.php"><?php echo $text['back'] ?></a><?php } ?>
     <?php if ($canManage) { ?><a class="btn" href="newforums.php?action=manage"><?php echo $text['manage'] ?></a><?php } ?>
 </p>
 <?php if ($groups->isEmpty()) { ?>
@@ -655,6 +670,9 @@ begin_main_frame();
     }
     $groupForums = $groupForumsQuery->orderBy('sort')->orderBy('id')->get();
     if ($groupForums->isEmpty() && !$canManage) {
+        if ($selectedGroupId !== null) {
+            permissiondenied();
+        }
         continue;
     }
 ?>
