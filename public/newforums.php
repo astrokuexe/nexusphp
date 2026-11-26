@@ -45,6 +45,7 @@ $text = [
     'reply' => 'Reply to Topic',
     'submit' => 'Submit',
     'back' => 'Back to forums',
+    'new_torrents' => 'New Torrents',
 ];
 $escape = static fn ($value): string => htmlspecialchars((string) $value, ENT_QUOTES, 'UTF-8');
 $input = static function (string $name): string {
@@ -468,7 +469,17 @@ if ($action === 'viewforum') {
     stdhead($pageTitle);
     begin_main_frame();
 ?>
-<p><a href="newforums.php"><?php echo $text['back'] ?></a> / <?php echo $escape($forum->group_name) ?> / <b><?php echo $escape($forum->name) ?></b></p>
+<p>
+    <a href="newforums.php"><?php echo $text['back'] ?></a> / <?php echo $escape($forum->group_name) ?> / <b><?php echo $escape($forum->name) ?></b>
+    <?php if (
+        ($CURUSER['uploadpos'] ?? 'yes') === 'yes'
+        && $userClass >= $forum->minclassread
+        && $userClass >= $forum->minclasswrite
+        && $userClass >= $forum->minclasscreate
+    ) { ?>
+    <a class="btn" href="upload.php" style="margin-left: 8px"><?php echo $text['new_torrents'] ?></a>
+    <?php } ?>
+</p>
 <p><?php echo $escape($forum->description) ?></p>
 <?php if ($topics->isEmpty()) { ?>
 <p><?php echo $text['no_topics'] ?></p>
