@@ -1402,14 +1402,6 @@ if ($enableextforum != 'yes') {
                         echo '<br><span class="small">'
                             . htmlspecialchars($forum['description'], ENT_QUOTES, 'UTF-8') . '</span>';
                     }
-                    if ($forum['can_create_topic']) {
-                        echo '<div style="margin-top: 5px"><a class="btn" href="newforums.php?action=newtopic&amp;forumid='
-                            . $forumId . '"><b>' . htmlspecialchars(
-                                $lang_forums['title_new_topic'],
-                                ENT_QUOTES,
-                                'UTF-8'
-                            ) . '</b></a></div>';
-                    }
                     echo '</td></tr>';
                     echo '<tr><td style="padding: 0"><table class="main" width="100%" cellspacing="0" cellpadding="5">';
                     echo '<tr><td class="colhead" width="60%">' . $lang_forums['col_topics'] . '</td>'

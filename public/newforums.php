@@ -68,6 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $postAction = $input('action');
+    $deleteAction = $_POST['delete_action'] ?? '';
+    if (is_string($deleteAction) && in_array($deleteAction, ['group_delete', 'forum_delete'], true)) {
+        $postAction = $deleteAction;
+    }
     if (str_starts_with($postAction, 'group_') || str_starts_with($postAction, 'forum_')) {
         if (!$canManage) {
             permissiondenied();
@@ -93,10 +97,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($postAction === 'group_delete') {
             $groupId = (int) $input('id');
-            if (DB::table('standalone_forums')->where('group_id', $groupId)->exists()) {
-                stderr('Forum error', 'A group that contains forums cannot be deleted.');
-            }
-            DB::table('standalone_forum_groups')->where('id', $groupId)->delete();
+            DB::transaction(static function () use ($groupId): void {
+                $forumIds = DB::table('standalone_forums')
+                    ->where('group_id', $groupId)
+                    ->pluck('id')
+                    ->map(static fn ($id): int => (int) $id)
+                    ->all();
+                if ($forumIds) {
+                    $topicIds = DB::table('standalone_forum_topics')
+                        ->whereIn('forum_id', $forumIds)
+                        ->pluck('id')
+                        ->all();
+                    if ($topicIds) {
+                        DB::table('standalone_forum_posts')->whereIn('topic_id', $topicIds)->delete();
+                        DB::table('standalone_forum_topics')->whereIn('id', $topicIds)->delete();
+                    }
+                    DB::table('standalone_forums')->whereIn('id', $forumIds)->delete();
+                }
+                DB::table('standalone_forum_groups')->where('id', $groupId)->delete();
+            });
             $redirect('newforums.php?action=manage');
         }
 
@@ -140,10 +159,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($postAction === 'forum_delete') {
             $forumId = (int) $input('id');
-            if (DB::table('standalone_forum_topics')->where('forum_id', $forumId)->exists()) {
-                stderr('Forum error', 'A forum that contains topics cannot be deleted.');
-            }
-            DB::table('standalone_forums')->where('id', $forumId)->delete();
+            DB::transaction(static function () use ($forumId): void {
+                $topicIds = DB::table('standalone_forum_topics')
+                    ->where('forum_id', $forumId)
+                    ->pluck('id')
+                    ->all();
+                if ($topicIds) {
+                    DB::table('standalone_forum_posts')->whereIn('topic_id', $topicIds)->delete();
+                    DB::table('standalone_forum_topics')->whereIn('id', $topicIds)->delete();
+                }
+                DB::table('standalone_forums')->where('id', $forumId)->delete();
+            });
             $redirect('newforums.php?action=manage');
         }
 
@@ -322,15 +348,9 @@ if ($action === 'manage') {
     <input name="description" maxlength="255" value="<?php echo $escape($group->description) ?>">
     <input type="number" name="sort" min="0" max="65535" value="<?php echo (int) $group->sort ?>">
     <button class="btn" type="submit"><?php echo $text['save'] ?></button>
+    <button class="btn" type="submit" name="delete_action" value="group_delete"
+        onclick="return confirm('Delete this group and every forum, topic, and post inside it?')"><?php echo $text['delete'] ?></button>
 </form>
-<?php if (!DB::table('standalone_forums')->where('group_id', $group->id)->exists()) { ?>
-<form method="post" action="newforums.php?action=manage" onsubmit="return confirm('Delete this group?')">
-    <input type="hidden" name="_token" value="<?php echo $escape($csrfToken) ?>">
-    <input type="hidden" name="action" value="group_delete">
-    <input type="hidden" name="id" value="<?php echo (int) $group->id ?>">
-    <button class="btn" type="submit"><?php echo $text['delete'] ?> <?php echo $escape($group->name) ?></button>
-</form>
-<?php } ?>
 <?php } ?>
 
 <?php foreach ($forums as $forum) { ?>
@@ -354,15 +374,9 @@ if ($action === 'manage') {
     </select>
     <?php } ?>
     <button class="btn" type="submit"><?php echo $text['save'] ?></button>
+    <button class="btn" type="submit" name="delete_action" value="forum_delete"
+        onclick="return confirm('Delete this forum and every topic and post inside it?')"><?php echo $text['delete'] ?></button>
 </form>
-<?php if ((int) $forum->topiccount === 0) { ?>
-<form method="post" action="newforums.php?action=manage" onsubmit="return confirm('Delete this forum?')">
-    <input type="hidden" name="_token" value="<?php echo $escape($csrfToken) ?>">
-    <input type="hidden" name="action" value="forum_delete">
-    <input type="hidden" name="id" value="<?php echo (int) $forum->id ?>">
-    <button class="btn" type="submit"><?php echo $text['delete'] ?> <?php echo $escape($forum->name) ?></button>
-</form>
-<?php } ?>
 <?php } ?>
 <?php
     end_main_frame();
@@ -456,9 +470,6 @@ if ($action === 'viewforum') {
 ?>
 <p><a href="newforums.php"><?php echo $text['back'] ?></a> / <?php echo $escape($forum->group_name) ?> / <b><?php echo $escape($forum->name) ?></b></p>
 <p><?php echo $escape($forum->description) ?></p>
-<?php if ($canPost && $userClass >= $forum->minclasswrite && $userClass >= $forum->minclasscreate) { ?>
-<p><a class="btn" href="newforums.php?action=newtopic&amp;forumid=<?php echo (int) $forum->id ?>"><?php echo $text['new_topic'] ?></a></p>
-<?php } ?>
 <?php if ($topics->isEmpty()) { ?>
 <p><?php echo $text['no_topics'] ?></p>
 <?php } else { ?>
@@ -553,9 +564,6 @@ stdhead($pageTitle);
 begin_main_frame();
 ?>
 <p>
-    <?php if ($canPost && DB::table('standalone_forums')->where('minclassread', '<=', $userClass)->where('minclasswrite', '<=', $userClass)->where('minclasscreate', '<=', $userClass)->exists()) { ?>
-    <a class="btn" href="newforums.php?action=newtopic"><?php echo $text['new_topic'] ?></a>
-    <?php } ?>
     <?php if ($canManage) { ?><a class="btn" href="newforums.php?action=manage"><?php echo $text['manage'] ?></a><?php } ?>
 </p>
 <?php if ($groups->isEmpty()) { ?>
