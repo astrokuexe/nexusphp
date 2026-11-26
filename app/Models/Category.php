@@ -38,31 +38,13 @@ class Category extends NexusModel
         return $this->hasMany(self::class, 'parent_id');
     }
 
-    public function getDisplayNameAttribute(): string
-    {
-        $names = [$this->name];
-        $ancestor = $this->parent;
-        $visited = [(int) $this->getKey() => true];
-
-        while ($ancestor && !isset($visited[(int) $ancestor->getKey()])) {
-            $visited[(int) $ancestor->getKey()] = true;
-            array_unshift($names, $ancestor->name);
-            $ancestor = $ancestor->parent;
-        }
-
-        return implode(' / ', $names);
-    }
-
     public static function listMenuGroups(int $mode): \Illuminate\Database\Eloquent\Collection
     {
         return self::query()
             ->where('mode', $mode)
             ->whereNull('parent_id')
             ->whereHas('children', fn ($query) => $query->where('mode', $mode))
-            ->with([
-                'children' => fn ($query) => $query->where('mode', $mode)->orderByDesc('sort_index')->orderByDesc('id'),
-                'children.children' => fn ($query) => $query->where('mode', $mode)->orderByDesc('sort_index')->orderByDesc('id'),
-            ])
+            ->with(['children' => fn ($query) => $query->where('mode', $mode)->orderByDesc('sort_index')->orderByDesc('id')])
             ->orderByDesc('sort_index')
             ->orderByDesc('id')
             ->get();
@@ -73,7 +55,7 @@ class Category extends NexusModel
         $options = self::query()
             ->where('mode', $mode)
             ->whereDoesntHave('children', fn ($query) => $query->where('mode', $mode))
-            ->with(['parent:id,name,parent_id', 'parent.parent:id,name,parent_id'])
+            ->with('parent:id,name')
             ->orderByDesc('sort_index')
             ->orderByDesc('id')
             ->get(['id', 'mode', 'name', 'parent_id']);
@@ -95,7 +77,7 @@ class Category extends NexusModel
     {
         return self::query()
             ->where('mode', $mode)
-            ->with(['parent:id,name,parent_id', 'parent.parent:id,name,parent_id'])
+            ->with('parent:id,name')
             ->orderByDesc('sort_index')
             ->orderByDesc('id')
             ->get(['id', 'mode', 'name', 'parent_id']);
@@ -117,18 +99,22 @@ class Category extends NexusModel
             return [];
         }
 
-        $expandedIds = $categoryIds;
-        $pendingIds = $categoryIds;
-        while (!empty($pendingIds)) {
-            $children = self::query()
-                ->where('mode', $mode)
-                ->whereIn('parent_id', $pendingIds)
-                ->pluck('id')
-                ->map(fn ($id) => (int) $id)
-                ->all();
+        $childrenByParent = self::query()
+            ->where('mode', $mode)
+            ->whereIn('parent_id', $categoryIds)
+            ->get(['id', 'parent_id'])
+            ->groupBy('parent_id');
 
-            $pendingIds = array_values(array_diff($children, $expandedIds));
-            $expandedIds = array_merge($expandedIds, $pendingIds);
+        $expandedIds = [];
+        foreach ($categoryIds as $categoryId) {
+            if ($childrenByParent->has($categoryId)) {
+                $expandedIds[] = $categoryId;
+                foreach ($childrenByParent->get($categoryId) as $child) {
+                    $expandedIds[] = (int) $child->id;
+                }
+            } else {
+                $expandedIds[] = $categoryId;
+            }
         }
 
         return array_values(array_unique($expandedIds));
