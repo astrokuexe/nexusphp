@@ -1331,12 +1331,16 @@ if ($allTags->isNotEmpty()) {
 	}
 if ($enableextforum != 'yes') {
     $class = get_user_class();
-    $canCreateStandaloneTopic = ($CURUSER['forumpost'] ?? 'no') === 'yes'
-        && DB::table('standalone_forums')
-            ->where('minclassread', '<=', $class)
-            ->where('minclasswrite', '<=', $class)
-            ->where('minclasscreate', '<=', $class)
-            ->exists();
+    $canCreateStandaloneTopic = false;
+    if (($CURUSER['forumpost'] ?? 'no') === 'yes') {
+        $createTopicForum = sql_query(
+            "SELECT id FROM standalone_forums WHERE minclassread <= " . sqlesc($class)
+            . " AND minclasswrite <= " . sqlesc($class)
+            . " AND minclasscreate <= " . sqlesc($class)
+            . " LIMIT 1"
+        ) or sqlerr(__FILE__, __LINE__);
+        $canCreateStandaloneTopic = mysql_num_rows($createTopicForum) > 0;
+    }
     if ($canCreateStandaloneTopic || user_can('forummanage')) {
         $forumUrl = $canCreateStandaloneTopic
             ? 'newforums.php?action=newtopic'
