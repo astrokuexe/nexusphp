@@ -292,21 +292,7 @@ if ($action === 'manage') {
         permissiondenied();
     }
 
-    $selectedGroupId = null;
-    if (array_key_exists('groupid', $_GET)) {
-        $selectedGroupId = filter_var($_GET['groupid'], FILTER_VALIDATE_INT);
-        if ($selectedGroupId === false || $selectedGroupId < 1) {
-            permissiondenied();
-        }
-    }
-    $groupsQuery = DB::table('standalone_forum_groups');
-    if ($selectedGroupId !== null) {
-        $groupsQuery->where('id', $selectedGroupId);
-    }
-    $groups = $groupsQuery->orderBy('sort')->orderBy('id')->get();
-    if ($selectedGroupId !== null && $groups->isEmpty()) {
-        permissiondenied();
-    }
+    $groups = DB::table('standalone_forum_groups')->orderBy('sort')->orderBy('id')->get();
     $forums = DB::table('standalone_forums as f')
         ->join('standalone_forum_groups as g', 'g.id', '=', 'f.group_id')
         ->select('f.*', 'g.name as group_name')
@@ -651,7 +637,21 @@ if ($action !== 'index') {
     httperr();
 }
 
-$groups = DB::table('standalone_forum_groups')->orderBy('sort')->orderBy('id')->get();
+$selectedGroupId = null;
+if (array_key_exists('groupid', $_GET)) {
+    $selectedGroupId = filter_var($_GET['groupid'], FILTER_VALIDATE_INT);
+    if ($selectedGroupId === false || $selectedGroupId < 1) {
+        permissiondenied();
+    }
+}
+$groupsQuery = DB::table('standalone_forum_groups');
+if ($selectedGroupId !== null) {
+    $groupsQuery->where('id', $selectedGroupId);
+}
+$groups = $groupsQuery->orderBy('sort')->orderBy('id')->get();
+if ($selectedGroupId !== null && $groups->isEmpty()) {
+    permissiondenied();
+}
 $pageTitle = $text['title'];
 stdhead($pageTitle);
 begin_main_frame();
