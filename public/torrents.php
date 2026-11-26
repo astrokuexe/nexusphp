@@ -1336,7 +1336,7 @@ if ($enableextforum != 'yes' && ($CURUSER['forumpost'] ?? 'no') === 'yes') {
         . " LIMIT 1"
     ) or sqlerr(__FILE__, __LINE__);
     if (mysql_num_rows($createTopicForum) > 0) {
-        echo '<p style="margin: 8px 0"><a class="btn" href="forums.php?action=newtopic"><b>'
+        echo '<p style="margin: 8px 0"><a class="btn" href="newforums.php"><b>'
             . $lang_forums['title_new_topic'] . '</b></a></p>';
     }
 }
