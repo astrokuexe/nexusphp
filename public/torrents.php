@@ -1027,32 +1027,6 @@ else stdhead($lang_torrents['head_special']);
 print("<table width=\"97%\" class=\"main\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"><tr><td class=\"embedded\">");
 
 displayHotAndClassic();
-if (in_array(nexus()->getScript(), ['torrents', 'special'], true)) {
-    $menuGroups = \App\Models\Category::listMenuGroups((int) $sectiontype);
-    if ($menuGroups->isNotEmpty()) {
-        echo '<div class="torrent-category-menus" style="margin: 8px 0">';
-        foreach ($menuGroups as $menu) {
-            $menuId = (int) $menu->id;
-            printf(
-                '<div style="margin: 4px 0"><a class="btn" href="?cat=%d"%s><strong>%s</strong></a>&nbsp;',
-                $menuId,
-                $category_get === $menuId ? ' aria-current="page"' : '',
-                htmlspecialchars($menu->name, ENT_QUOTES, 'UTF-8')
-            );
-            foreach ($menu->children as $child) {
-                $childId = (int) $child->id;
-                printf(
-                    '<a class="btn" href="?cat=%d"%s>%s</a>&nbsp;',
-                    $childId,
-                    $category_get === $childId ? ' aria-current="page"' : '',
-                    htmlspecialchars($child->name, ENT_QUOTES, 'UTF-8')
-                );
-            }
-            echo '</div>';
-        }
-        echo '</div>';
-    }
-}
 $searchBoxRightTdStyle = 'padding: 1px;padding-left: 10px;white-space: nowrap';
 if ($allsec != 1 || $enablespecial != 'yes'){ //do not print searchbox if showing bookmarked torrents from all sections;
 ?>
@@ -1320,6 +1294,35 @@ if ($allTags->isNotEmpty()) {
 	</table>
 	</form>
 <?php
+}
+if (in_array(nexus()->getScript(), ['torrents', 'special'], true)) {
+    $menuGroups = \App\Models\Category::listMenuGroups((int) $sectiontype);
+    if ($menuGroups->isNotEmpty()) {
+        echo '<table class="torrent-category-menus" border="1" cellspacing="0" cellpadding="5" width="100%" style="margin: 8px 0">';
+        foreach ($menuGroups as $menu) {
+            $menuId = (int) $menu->id;
+            printf(
+                '<tr><td class="colhead" align="left"><a href="?cat=%d"%s><strong>%s</strong></a></td></tr><tr><td class="rowfollow" align="left">',
+                $menuId,
+                $category_get === $menuId ? ' aria-current="page"' : '',
+                htmlspecialchars($menu->name, ENT_QUOTES, 'UTF-8')
+            );
+            $firstChild = true;
+            foreach ($menu->children as $child) {
+                $childId = (int) $child->id;
+                printf(
+                    '%s<a href="?cat=%d"%s><strong>%s</strong></a>',
+                    $firstChild ? '' : '&nbsp;|&nbsp;',
+                    $childId,
+                    $category_get === $childId ? ' aria-current="page"' : '',
+                    htmlspecialchars($child->name, ENT_QUOTES, 'UTF-8')
+                );
+                $firstChild = false;
+            }
+            echo '</td></tr>';
+        }
+        echo '</table>';
+    }
 }
 	if ($Advertisement->enable_ad()){
         $belowsearchboxad = $Advertisement->get_ad('belowsearchbox');
