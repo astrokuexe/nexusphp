@@ -52,7 +52,7 @@ $redirect = static function (string $url): void {
 $canManage = user_can('forummanage');
 $userClass = get_user_class();
 $canPost = ($CURUSER['forumpost'] ?? 'no') === 'yes';
-$csrfToken = csrf_token();
+$csrfToken = nexus_csrf_token('standalone_forum', (string) $CURUSER['id']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $token = $_POST['_token'] ?? '';
