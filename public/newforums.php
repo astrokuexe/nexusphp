@@ -679,15 +679,12 @@ begin_main_frame();
 <h2 id="group-<?php echo (int) $group->id ?>"><?php echo $escape($group->name) ?></h2>
 <?php if ($group->description !== '') { ?><p><?php echo $escape($group->description) ?></p><?php } ?>
 <table class="main" width="100%" cellspacing="0" cellpadding="5">
-    <tr><td class="colhead"><?php echo $text['forum'] ?></td><td class="colhead"><?php echo $text['topics'] ?></td><td class="colhead"><?php echo $text['posts'] ?></td></tr>
     <?php foreach ($groupForums as $forum) { ?>
     <tr>
         <td class="rowfollow"><a href="newforums.php?action=viewforum&amp;forumid=<?php echo (int) $forum->id ?>"><?php echo $escape($forum->name) ?></a><?php if ($forum->description !== '') { ?><br><span class="small"><?php echo $escape($forum->description) ?></span><?php } ?></td>
-        <td class="rowfollow"><?php echo (int) $forum->topiccount ?></td>
-        <td class="rowfollow"><?php echo (int) $forum->postcount ?></td>
     </tr>
     <?php } ?>
-    <?php if ($groupForums->isEmpty()) { ?><tr><td class="rowfollow" colspan="3"><?php echo $text['empty'] ?></td></tr><?php } ?>
+    <?php if ($groupForums->isEmpty()) { ?><tr><td class="rowfollow"><?php echo $text['empty'] ?></td></tr><?php } ?>
 </table>
 <?php } ?>
 <?php
