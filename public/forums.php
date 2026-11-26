@@ -260,7 +260,43 @@ $action = htmlspecialchars(trim($_GET["action"] ?? ''));
 if ($action == "newtopic")
 {
 	$forumid = intval($_GET["forumid"] ?? 0);
+	$canCreateTopics = ($CURUSER["forumpost"] ?? "no") == "yes";
+	$userClass = get_user_class();
+	$forums = get_forum_row();
+	$eligibleForums = array_filter($forums, function ($forum) use ($canCreateTopics, $userClass) {
+		return $canCreateTopics
+			&& $userClass >= $forum["minclassread"]
+			&& $userClass >= $forum["minclasswrite"]
+			&& $userClass >= $forum["minclasscreate"];
+	});
+
+	if (!$forumid) {
+		if (empty($eligibleForums))
+			stderr($lang_forums['std_error'], $lang_forums['text_unpermitted_starting_new_topics']);
+
+		stdhead($lang_forums['head_new_topic']);
+		begin_main_frame();
+?>
+<form method="get" action="forums.php" style="text-align: center">
+	<input type="hidden" name="action" value="newtopic" />
+	<label for="forumid"><?php echo $lang_forums['text_forum'] ?></label>
+	<select id="forumid" name="forumid" required>
+		<?php foreach ($eligibleForums as $forum) { ?>
+		<option value="<?php echo (int) $forum['id'] ?>"><?php echo htmlspecialchars($forum['name'], ENT_QUOTES, 'UTF-8') ?></option>
+		<?php } ?>
+	</select>
+	<input type="submit" class="btn" value="<?php echo $lang_forums['submit_go'] ?>" />
+</form>
+<?php
+		end_main_frame();
+		stdfoot();
+		die;
+	}
+
 	check_whether_exist($forumid, 'forum');
+	if (!isset($eligibleForums[$forumid]))
+		permissiondenied();
+
 	stdhead($lang_forums['head_new_topic']);
 	begin_main_frame();
 	insert_compose_frame($forumid,'new');

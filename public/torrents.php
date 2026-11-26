@@ -3,6 +3,7 @@ require_once("../include/bittorrent.php");
 dbconn(true);
 require_once(get_langfile_path('torrents.php'));
 require_once(get_langfile_path('special.php'));
+require_once(get_langfile_path('forums.php'));
 loggedinorreturn();
 parked();
 \Nexus\Database\RuntimeMigrations::ensureCategoryParentId();
@@ -1327,6 +1328,18 @@ if ($allTags->isNotEmpty()) {
             echo "<div align=\"center\" style=\"margin-top: 10px\" id=\"\">".$belowsearchboxad[0]."</div>";
         }
 	}
+if ($enableextforum != 'yes' && ($CURUSER['forumpost'] ?? 'no') === 'yes') {
+    $createTopicForum = sql_query(
+        "SELECT id FROM forums WHERE minclassread <= " . sqlesc(get_user_class())
+        . " AND minclasswrite <= " . sqlesc(get_user_class())
+        . " AND minclasscreate <= " . sqlesc(get_user_class())
+        . " LIMIT 1"
+    ) or sqlerr(__FILE__, __LINE__);
+    if (mysql_num_rows($createTopicForum) > 0) {
+        echo '<p style="margin: 8px 0"><a class="btn" href="forums.php?action=newtopic"><b>'
+            . $lang_forums['title_new_topic'] . '</b></a></p>';
+    }
+}
 if($inclbookmarked == 1)
 {
 	print("<h1 align=\"center\">" . get_username($CURUSER['id']) . $lang_torrents['text_s_bookmarked_torrent'] . "</h1>");
