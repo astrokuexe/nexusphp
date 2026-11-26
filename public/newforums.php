@@ -468,45 +468,82 @@ if ($action === 'viewforum') {
             ->whereColumn('topic_posts.topic_id', 't.id'), 'topic_post_count')
         ->orderByDesc('t.last_post_id')
         ->get();
+    $latestTorrentComments = DB::table('comments')
+        ->select('torrent')
+        ->selectRaw('MAX(id) AS id')
+        ->where('torrent', '>', 0)
+        ->groupBy('torrent');
     $forumTorrents = DB::table('standalone_forum_torrents as ft')
         ->join('torrents as t', 't.id', '=', 'ft.torrent_id')
         ->leftJoin('users as u', 'u.id', '=', 't.owner')
+        ->leftJoinSub($latestTorrentComments, 'latest_torrent_comment', static function ($join): void {
+            $join->on('latest_torrent_comment.torrent', '=', 't.id');
+        })
+        ->leftJoin('comments as last_comment', 'last_comment.id', '=', 'latest_torrent_comment.id')
+        ->leftJoin('users as last_comment_user', 'last_comment_user.id', '=', 'last_comment.user')
         ->where('ft.forum_id', $forumId)
         ->where('t.visible', 'yes')
         ->where('t.banned', 'no')
-        ->select('t.id', 't.name', 't.size', 't.added', 't.owner', 't.anonymous', 'u.username')
+        ->select(
+            't.id',
+            't.name',
+            't.size',
+            't.added',
+            't.owner',
+            't.anonymous',
+            't.seeders',
+            't.leechers',
+            'u.username',
+            'last_comment.user as last_reply_user_id',
+            'last_comment.anonymous as last_reply_anonymous',
+            'last_comment.added as last_reply_at',
+            'last_comment_user.username as last_reply_username'
+        )
         ->orderByDesc('ft.created_at')
         ->get();
+    $canUploadToForum = ($CURUSER['uploadpos'] ?? 'no') === 'yes'
+        && $userClass >= $forum->minclassread
+        && $userClass >= $forum->minclasswrite
+        && $userClass >= $forum->minclasscreate;
     $pageTitle = $forum->name;
     stdhead($pageTitle);
     begin_main_frame();
 ?>
 <p>
-    <a href="newforums.php"><?php echo $text['back'] ?></a> / <?php echo $escape($forum->group_name) ?> / <b><?php echo $escape($forum->name) ?></b>
-    <?php if (
-        ($CURUSER['uploadpos'] ?? 'yes') === 'yes'
-        && $userClass >= $forum->minclassread
-        && $userClass >= $forum->minclasswrite
-        && $userClass >= $forum->minclasscreate
-    ) { ?>
-    <a class="btn" href="upload.php?forumid=<?php echo (int) $forum->id ?>" style="margin-left: 8px"><?php echo $text['new_torrents'] ?></a>
-    <?php } ?>
+    <a href="newforums.php"><?php echo $text['back'] ?></a> /
+    <a href="newforums.php#group-<?php echo (int) $forum->group_id ?>"><?php echo $escape($forum->group_name) ?></a> /
+    <a href="newforums.php?action=viewforum&amp;forumid=<?php echo (int) $forum->id ?>"><b><?php echo $escape($forum->name) ?></b></a>
 </p>
 <p><?php echo $escape($forum->description) ?></p>
+<?php if ($canUploadToForum) { ?>
+<p style="text-align: right; margin-bottom: 5px">
+    <a class="btn" href="upload.php?forumid=<?php echo (int) $forum->id ?>"><?php echo $text['new_torrents'] ?></a>
+</p>
+<?php } ?>
 <?php if ($forumTorrents->isNotEmpty()) { ?>
 <table class="main" width="100%" cellspacing="0" cellpadding="5">
     <tr>
         <td class="colhead">Torrent</td>
         <td class="colhead" align="center">Size</td>
-        <td class="colhead">Uploaded</td>
+        <td class="colhead">Last Activity</td>
     </tr>
     <?php foreach ($forumTorrents as $torrent) { ?>
     <tr>
         <td class="rowfollow"><a href="details.php?id=<?php echo (int) $torrent->id ?>"><?php echo $escape($torrent->name) ?></a></td>
-        <td class="rowfollow" align="center"><?php echo mksize((int) $torrent->size) ?></td>
+        <td class="rowfollow" align="center">
+            <span style="color: green"><?php echo (int) $torrent->seeders ?></span>
+            |
+            <span style="color: red"><?php echo (int) $torrent->leechers ?></span>
+            <br><span class="small"><?php echo mksize((int) $torrent->size) ?></span>
+        </td>
         <td class="rowfollow">
-            <?php echo $torrent->anonymous === 'yes' ? 'Anonymous' : $escape($torrent->username ?? '') ?>
-            <?php if ($torrent->added) { ?><br><span class="small"><?php echo gettime($torrent->added) ?></span><?php } ?>
+            <?php if ($torrent->last_reply_user_id !== null) { ?>
+                <?php echo $torrent->last_reply_anonymous === 'yes' ? 'Anonymous' : $escape($torrent->last_reply_username ?? '') ?>
+                <?php if ($torrent->last_reply_at) { ?><br><span class="small"><?php echo gettime($torrent->last_reply_at) ?></span><?php } ?>
+            <?php } else { ?>
+                <?php echo $torrent->anonymous === 'yes' ? 'Anonymous' : $escape($torrent->username ?? '') ?>
+                <?php if ($torrent->added) { ?><br><span class="small"><?php echo gettime($torrent->added) ?></span><?php } ?>
+            <?php } ?>
         </td>
     </tr>
     <?php } ?>
@@ -621,7 +658,7 @@ begin_main_frame();
         continue;
     }
 ?>
-<h2><?php echo $escape($group->name) ?></h2>
+<h2 id="group-<?php echo (int) $group->id ?>"><?php echo $escape($group->name) ?></h2>
 <?php if ($group->description !== '') { ?><p><?php echo $escape($group->description) ?></p><?php } ?>
 <table class="main" width="100%" cellspacing="0" cellpadding="5">
     <tr><td class="colhead"><?php echo $text['forum'] ?></td><td class="colhead"><?php echo $text['topics'] ?></td><td class="colhead"><?php echo $text['posts'] ?></td></tr>
