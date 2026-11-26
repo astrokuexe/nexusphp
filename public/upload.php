@@ -8,6 +8,30 @@ parked();
 if ($CURUSER["uploadpos"] == 'no')
 	stderr($lang_upload['std_sorry'], $lang_upload['std_unauthorized_to_upload'],false);
 
+$standaloneForumId = 0;
+if (array_key_exists('forumid', $_GET)) {
+    $forumId = filter_var($_GET['forumid'], FILTER_VALIDATE_INT);
+    if ($forumId === false || $forumId < 1) {
+        permissiondenied();
+    }
+    \Nexus\Database\RuntimeMigrations::ensureStandaloneForumTables();
+    $forumResult = sql_query(
+        "SELECT minclassread, minclasswrite, minclasscreate FROM standalone_forums WHERE id = "
+        . (int) $forumId . " LIMIT 1"
+    ) or sqlerr(__FILE__, __LINE__);
+    $uploadForum = mysql_fetch_assoc($forumResult);
+    $userClass = get_user_class();
+    if (
+        !$uploadForum
+        || $userClass < $uploadForum['minclassread']
+        || $userClass < $uploadForum['minclasswrite']
+        || $userClass < $uploadForum['minclasscreate']
+    ) {
+        permissiondenied();
+    }
+    $standaloneForumId = (int) $forumId;
+}
+
 if ($enableoffer == 'yes')
     $has_allowed_offer = get_row_count("offers","WHERE allowed='allowed' AND userid = ". sqlesc($CURUSER["id"]));
 else $has_allowed_offer = 0;
@@ -37,6 +61,9 @@ $tagRep = new \App\Repositories\TagRepository();
 stdhead($lang_upload['head_upload']);
 ?>
 	<form id="compose" enctype="multipart/form-data" action="takeupload.php" method="post" name="upload">
+            <?php if ($standaloneForumId > 0) { ?>
+            <input type="hidden" name="standalone_forum_id" value="<?php echo $standaloneForumId ?>">
+            <?php } ?>
 			<?php
 			print("<p align=\"center\">".$lang_upload['text_red_star_required']."</p>");
 			?>

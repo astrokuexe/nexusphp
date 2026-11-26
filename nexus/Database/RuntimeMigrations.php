@@ -65,6 +65,16 @@ final class RuntimeMigrations
         });
     }
 
+    public static function ensureStandaloneForumTorrentsTable(): void
+    {
+        self::ensureSchema(
+            'standalone_forum_torrents',
+            null,
+            'database/migrations/2026_11_26_000001_create_standalone_forum_torrents_table.php',
+            'nexus:migrations:standalone_forum_torrents'
+        );
+    }
+
     public static function ensureCategoryParentId(): void
     {
         self::ensureSchema(

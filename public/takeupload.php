@@ -21,6 +21,31 @@ function bark($msg) {
 if ($CURUSER["uploadpos"] == 'no')
 	die;
 
+$standaloneForumId = 0;
+if (isset($_POST['standalone_forum_id'])) {
+    $forumId = filter_var($_POST['standalone_forum_id'], FILTER_VALIDATE_INT);
+    if ($forumId === false || $forumId < 1) {
+        permissiondenied();
+    }
+    \Nexus\Database\RuntimeMigrations::ensureStandaloneForumTables();
+    \Nexus\Database\RuntimeMigrations::ensureStandaloneForumTorrentsTable();
+    $forumResult = sql_query(
+        "SELECT minclassread, minclasswrite, minclasscreate FROM standalone_forums WHERE id = "
+        . (int) $forumId . " LIMIT 1"
+    ) or sqlerr(__FILE__, __LINE__);
+    $uploadForum = mysql_fetch_assoc($forumResult);
+    $userClass = get_user_class();
+    if (
+        !$uploadForum
+        || $userClass < $uploadForum['minclassread']
+        || $userClass < $uploadForum['minclasswrite']
+        || $userClass < $uploadForum['minclasscreate']
+    ) {
+        permissiondenied();
+    }
+    $standaloneForumId = (int) $forumId;
+}
+
 foreach(explode(":","descr:type:name") as $v) {
 	if (!isset($_POST[$v]))
 	bark($lang_takeupload['std_missing_form_data']);
@@ -411,6 +436,12 @@ $saveResult = $dict->dump($torrentFilePath);
 if ($saveResult === false) {
     sql_query("delete from torrents where id = $id limit 1");
     bark("save torrent to $torrentFilePath fail.");
+}
+if ($standaloneForumId > 0) {
+    sql_query(
+        "INSERT INTO standalone_forum_torrents (forum_id, torrent_id, created_at) VALUES ("
+        . $standaloneForumId . ", " . (int) $id . ", " . sqlesc($dateTimeStringNow) . ")"
+    ) or sqlerr(__FILE__, __LINE__);
 }
 //remove announce info_hash not exists cache
 //@see announce.php

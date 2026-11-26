@@ -18,6 +18,7 @@ if ($enableextforum === 'yes') {
 }
 
 \Nexus\Database\RuntimeMigrations::ensureStandaloneForumTables();
+\Nexus\Database\RuntimeMigrations::ensureStandaloneForumTorrentsTable();
 
 $text = [
     'title' => 'Community Forums',
@@ -113,6 +114,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         DB::table('standalone_forum_posts')->whereIn('topic_id', $topicIds)->delete();
                         DB::table('standalone_forum_topics')->whereIn('id', $topicIds)->delete();
                     }
+                    DB::table('standalone_forum_torrents')->whereIn('forum_id', $forumIds)->delete();
                     DB::table('standalone_forums')->whereIn('id', $forumIds)->delete();
                 }
                 DB::table('standalone_forum_groups')->where('id', $groupId)->delete();
@@ -169,6 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     DB::table('standalone_forum_posts')->whereIn('topic_id', $topicIds)->delete();
                     DB::table('standalone_forum_topics')->whereIn('id', $topicIds)->delete();
                 }
+                DB::table('standalone_forum_torrents')->where('forum_id', $forumId)->delete();
                 DB::table('standalone_forums')->where('id', $forumId)->delete();
             });
             $redirect('newforums.php?action=manage');
@@ -465,6 +468,15 @@ if ($action === 'viewforum') {
             ->whereColumn('topic_posts.topic_id', 't.id'), 'topic_post_count')
         ->orderByDesc('t.last_post_id')
         ->get();
+    $forumTorrents = DB::table('standalone_forum_torrents as ft')
+        ->join('torrents as t', 't.id', '=', 'ft.torrent_id')
+        ->leftJoin('users as u', 'u.id', '=', 't.owner')
+        ->where('ft.forum_id', $forumId)
+        ->where('t.visible', 'yes')
+        ->where('t.banned', 'no')
+        ->select('t.id', 't.name', 't.size', 't.added', 't.owner', 't.anonymous', 'u.username')
+        ->orderByDesc('ft.created_at')
+        ->get();
     $pageTitle = $forum->name;
     stdhead($pageTitle);
     begin_main_frame();
@@ -477,13 +489,32 @@ if ($action === 'viewforum') {
         && $userClass >= $forum->minclasswrite
         && $userClass >= $forum->minclasscreate
     ) { ?>
-    <a class="btn" href="upload.php" style="margin-left: 8px"><?php echo $text['new_torrents'] ?></a>
+    <a class="btn" href="upload.php?forumid=<?php echo (int) $forum->id ?>" style="margin-left: 8px"><?php echo $text['new_torrents'] ?></a>
     <?php } ?>
 </p>
 <p><?php echo $escape($forum->description) ?></p>
-<?php if ($topics->isEmpty()) { ?>
+<?php if ($forumTorrents->isNotEmpty()) { ?>
+<table class="main" width="100%" cellspacing="0" cellpadding="5">
+    <tr>
+        <td class="colhead">Torrent</td>
+        <td class="colhead" align="center">Size</td>
+        <td class="colhead">Uploaded</td>
+    </tr>
+    <?php foreach ($forumTorrents as $torrent) { ?>
+    <tr>
+        <td class="rowfollow"><a href="details.php?id=<?php echo (int) $torrent->id ?>"><?php echo $escape($torrent->name) ?></a></td>
+        <td class="rowfollow" align="center"><?php echo mksize((int) $torrent->size) ?></td>
+        <td class="rowfollow">
+            <?php echo $torrent->anonymous === 'yes' ? 'Anonymous' : $escape($torrent->username ?? '') ?>
+            <?php if ($torrent->added) { ?><br><span class="small"><?php echo gettime($torrent->added) ?></span><?php } ?>
+        </td>
+    </tr>
+    <?php } ?>
+</table>
+<?php } ?>
+<?php if ($topics->isEmpty() && $forumTorrents->isEmpty()) { ?>
 <p><?php echo $text['no_topics'] ?></p>
-<?php } else { ?>
+<?php } elseif ($topics->isNotEmpty()) { ?>
 <table class="main" width="100%" cellspacing="0" cellpadding="5">
     <tr><td class="colhead"><?php echo $text['topic'] ?></td><td class="colhead"><?php echo $text['posts'] ?></td><td class="colhead"><?php echo $text['last_post'] ?></td></tr>
     <?php foreach ($topics as $topic) { ?>
