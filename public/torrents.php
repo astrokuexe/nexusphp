@@ -1390,7 +1390,7 @@ if ($enableextforum != 'yes') {
                 }
             }
 
-            echo '<h2>Community Forums</h2><table class="main" width="100%" cellspacing="0" cellpadding="5">';
+            echo '<table class="main" width="100%" cellspacing="0" cellpadding="5">';
             foreach ($forumMenuGroups as $group) {
                 echo '<tr><td class="colhead">' . htmlspecialchars($group['name'], ENT_QUOTES, 'UTF-8') . '</td></tr>';
                 foreach ($group['forums'] as $forum) {
@@ -1404,14 +1404,8 @@ if ($enableextforum != 'yes') {
                     }
                     echo '</td></tr>';
                     echo '<tr><td style="padding: 0"><table class="main" width="100%" cellspacing="0" cellpadding="5">';
-                    echo '<tr><td class="colhead" width="60%">' . $lang_forums['col_topics'] . '</td>'
-                        . '<td class="colhead" align="center">' . $lang_forums['col_replies'] . '</td>'
-                        . '<td class="colhead" align="center">' . $lang_forums['col_views'] . '</td>'
-                        . '<td class="colhead">' . $lang_forums['col_last_post'] . '</td></tr>';
                     $topics = $topicRowsByForum[$forumId] ?? [];
-                    if (!$topics) {
-                        echo '<tr><td class="rowfollow" colspan="4">There are no topics in this forum.</td></tr>';
-                    } else {
+                    if ($topics) {
                         foreach ($topics as $topic) {
                             echo '<tr><td class="rowfollow"><a href="newforums.php?action=viewtopic&amp;topicid='
                                 . (int) $topic['topic_id'] . '">'
