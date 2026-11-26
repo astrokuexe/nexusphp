@@ -1307,17 +1307,33 @@ if (in_array(nexus()->getScript(), ['torrents', 'special'], true)) {
                 $category_get === $menuId ? ' aria-current="page"' : '',
                 htmlspecialchars($menu->name, ENT_QUOTES, 'UTF-8')
             );
-            $firstChild = true;
             foreach ($menu->children as $child) {
                 $childId = (int) $child->id;
+                if ($child->children->isEmpty()) {
+                    printf(
+                        '<div><a href="?cat=%d"%s><strong>%s</strong></a></div>',
+                        $childId,
+                        $category_get === $childId ? ' aria-current="page"' : '',
+                        htmlspecialchars($child->name, ENT_QUOTES, 'UTF-8')
+                    );
+                    continue;
+                }
+
                 printf(
-                    '%s<a href="?cat=%d"%s><strong>%s</strong></a>',
-                    $firstChild ? '' : '&nbsp;|&nbsp;',
+                    '<div style="margin-top: 6px"><a href="?cat=%d"%s><strong>%s</strong></a></div><div style="padding-left: 18px">',
                     $childId,
                     $category_get === $childId ? ' aria-current="page"' : '',
                     htmlspecialchars($child->name, ENT_QUOTES, 'UTF-8')
                 );
-                $firstChild = false;
+                foreach ($child->children as $category) {
+                    printf(
+                        '<div><a href="?cat=%d"%s>%s</a></div>',
+                        (int) $category->id,
+                        $category_get === (int) $category->id ? ' aria-current="page"' : '',
+                        htmlspecialchars($category->name, ENT_QUOTES, 'UTF-8')
+                    );
+                }
+                echo '</div>';
             }
             echo '</td></tr>';
         }
@@ -1337,6 +1353,32 @@ if($inclbookmarked == 1)
 elseif($inclbookmarked == 2)
 {
 	print("<h1 align=\"center\">" . get_username($CURUSER['id']) . $lang_torrents['text_s_not_bookmarked_torrent'] . "</h1>");
+}
+
+if ($category_get && in_array(nexus()->getScript(), ['torrents', 'special'], true)) {
+    $selectedCategory = \App\Models\Category::query()
+        ->with('parent.parent')
+        ->where('mode', $sectiontype)
+        ->find($category_get);
+    if ($selectedCategory) {
+        $categoryPath = [];
+        for ($category = $selectedCategory; $category; $category = $category->parent) {
+            array_unshift($categoryPath, $category);
+        }
+        echo '<div class="torrent-category-breadcrumb" style="margin: 8px 0">';
+        foreach ($categoryPath as $index => $category) {
+            if ($index > 0) {
+                echo ' &raquo; ';
+            }
+            printf(
+                '<a href="?cat=%d"%s>%s</a>',
+                (int) $category->id,
+                (int) $category->id === $category_get ? ' aria-current="page"' : '',
+                htmlspecialchars($category->name, ENT_QUOTES, 'UTF-8')
+            );
+        }
+        echo '</div>';
+    }
 }
 
 if ($count) {

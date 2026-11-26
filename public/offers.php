@@ -44,8 +44,7 @@ if (isset($_GET['add_offer']) && $_GET["add_offer"]){
 	$s = "<select name=type>\n<option value=0>".$lang_offers['select_type_select']."</option>\n";
 	$cats = \App\Models\Category::listUploadOptions($browsecatmode);
 	foreach ($cats as $row) {
-		$categoryName = $row->parent ? $row->parent->name . " / " . $row->name : $row->name;
-		$s .= "<option value=".$row->id.">" . htmlspecialchars($categoryName) . "</option>\n";
+		$s .= "<option value=".$row->id.">" . htmlspecialchars($row->display_name) . "</option>\n";
 	}
 	$s .= "</select>\n";
 	print("<tr><td class=rowhead align=right><b>".$lang_offers['row_type']."<font color=red>*</font></b></td><td class=rowfollow align=left> $s</td></tr>".
@@ -379,8 +378,7 @@ if (isset($_GET["edit_offer"]) && $_GET["edit_offer"]) {
 	$cats = \App\Models\Category::listUploadOptions($browsecatmode, (int) $id2);
 
 	foreach ($cats as $row) {
-		$categoryName = $row->parent ? $row->parent->name . " / " . $row->name : $row->name;
-		$s2 .= "<option value=\"" . $row->id . "\" ".($row->id == $id2 ? " selected=\"selected\"" : "").">" . htmlspecialchars($categoryName) . "</option>\n";
+		$s2 .= "<option value=\"" . $row->id . "\" ".($row->id == $id2 ? " selected=\"selected\"" : "").">" . htmlspecialchars($row->display_name) . "</option>\n";
 	}
 	$s2 .= "</select>\n";
 
@@ -781,9 +779,8 @@ print("<div align=\"center\"><form method=\"get\" action=\"?\">".$lang_offers['t
 $cats = \App\Models\Category::listFilterOptions($browsecatmode);
 $catdropdown = "";
 foreach ($cats as $cat) {
-	$categoryName = $cat->parent ? $cat->parent->name . " / " . $cat->name : $cat->name;
 	$catdropdown .= "<option value=\"" . $cat->id . "\"";
-	$catdropdown .= ">" . htmlspecialchars($categoryName) . "</option>\n";
+	$catdropdown .= ">" . htmlspecialchars($cat->display_name) . "</option>\n";
 }
 print("<select name=\"category\"><option value=\"0\">".$lang_offers['select_show_all']."</option>".$catdropdown."</select>&nbsp;&nbsp;<input type=\"submit\" class=\"btn\" value=\"".$lang_offers['submit_search']."\" /></form></div>");
 end_frame();

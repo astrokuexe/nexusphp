@@ -96,11 +96,10 @@ else {
 
 	$cats = \App\Models\Category::listUploadOptions($sectionmode, (int) $row["category"]);
 	foreach ($cats as $subrow) {
-		$categoryName = $subrow->parent ? $subrow->parent->name . " / " . $subrow->name : $subrow->name;
 		$s .= "<option value=\"" . $subrow->id . "\"";
 		if ($subrow->id == $row["category"])
 		$s .= " selected=\"selected\"";
-		$s .= ">" . htmlspecialchars($categoryName) . "</option>\n";
+		$s .= ">" . htmlspecialchars($subrow->display_name) . "</option>\n";
 	}
 
 	$s .= "</select>\n";
@@ -108,11 +107,10 @@ else {
 		$s2 = "<select name=\"type\" id=newcat disabled data-mode='$othermode'>\n";
 		$cats2 = \App\Models\Category::listUploadOptions($othermode);
 		foreach ($cats2 as $subrow) {
-			$categoryName = $subrow->parent ? $subrow->parent->name . " / " . $subrow->name : $subrow->name;
 			$s2 .= "<option value=\"" . $subrow->id . "\"";
 			if ($subrow->id == $row["category"])
 			$s2 .= " selected=\"selected\"";
-			$s2 .= ">" . htmlspecialchars($categoryName) . "</option>\n";
+			$s2 .= ">" . htmlspecialchars($subrow->display_name) . "</option>\n";
 		}
 		$s2 .= "</select>\n";
 		$movecheckbox = "<input type=\"checkbox\" id=movecheck name=\"movecheck\" value=\"1\" onclick=\"disableother2('oricat','newcat')\" />";

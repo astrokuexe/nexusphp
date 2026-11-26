@@ -94,30 +94,37 @@ class CategoryResource extends Resource
 
                         $query = Category::query()
                             ->where('mode', $mode)
-                            ->whereNull('parent_id');
+                            ->where(function (Builder $query) {
+                                $query->whereNull('parent_id')
+                                    ->orWhereHas('parent', fn (Builder $parentQuery) => $parentQuery->whereNull('parent_id'));
+                            })
+                            ->with(['parent:id,name,parent_id', 'parent.parent:id,name,parent_id']);
                         if ($record) {
                             $query->where('id', '!=', $record->id);
                         }
 
-                        return $query->orderBy('name')->pluck('name', 'id')->toArray();
+                        return $query->orderBy('name')
+                            ->get(['id', 'name', 'parent_id'])
+                            ->mapWithKeys(fn (Category $category) => [$category->id => $category->display_name])
+                            ->all();
                     })
                     ->label(__('label.parent_id'))
                     ->placeholder('Top-level menu/category')
-                    ->helperText('Leave empty for a top-level menu. Select one to create a submenu.')
+                    ->helperText('Leave empty for a section heading. Select a heading for a group, or a group for a category.')
                     ->rules([
                         function (Get $get, ?Category $record) {
                             return function ($attribute, $value, $fail) use ($get, $record) {
                                 if ($value === null || $value === '') {
                                     return;
                                 }
-                                $parent = Category::query()->find($value);
+                                $parent = Category::query()->with('parent')->find($value);
                                 if (
                                     !$parent
-                                    || $parent->parent_id !== null
                                     || (int) $parent->mode !== (int) $get('mode')
-                                    || ($record && $record->children()->exists())
+                                    || ($parent->parent && $parent->parent->parent_id !== null)
+                                    || ($record && $record->children()->exists() && (int) $record->parent_id !== (int) $value)
                                 ) {
-                                    $fail('Choose a top-level category from the same section.');
+                                    $fail('Choose a heading or group from the same section, up to three levels deep.');
                                 }
                             };
                         },
@@ -153,7 +160,7 @@ class CategoryResource extends Resource
             ->columns([
                 TextColumn::make('id'),
                 TextColumn::make('search_box.name')->label(__('label.search_box.label')),
-                TextColumn::make('parent.name')->label(__('label.parent_id')),
+                TextColumn::make('parent.display_name')->label(__('label.parent_id')),
                 TextColumn::make('name')->label(__('label.search_box.taxonomy.name'))->searchable(),
                 TextColumn::make('icon.name')->label(__('label.search_box.taxonomy.icon_id')),
                 TextColumn::make('image')->label(__('label.search_box.taxonomy.image')),
