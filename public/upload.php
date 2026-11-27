@@ -92,15 +92,14 @@ stdhead($lang_upload['head_upload']);
 
 				if ($smalldescription_main == 'yes')
 				tr($lang_upload['row_small_description'], "<input type=\"text\" style=\"width: 99%;\" name=\"small_descr\" /><br /><font class=\"medium\">".$lang_upload['text_small_description_note']."</font>", 1);
-				get_external_tr("", true);
+				get_external_tr("", true, false);
 				if ($settingMain['enable_pt_gen_system'] == 'yes') {
                     $ptGen = new \Nexus\PTGen\PTGen();
                     echo $ptGen->renderUploadPageFormInput("");
                 }
                 tr(
                     $lang_upload['row_myanimelist_link'],
-                    '<input type="url" name="myanimelist_link" style="width: 99%;" /><br><font class="medium">'
-                    . $lang_upload['text_myanimelist_link_note'] . '</font>',
+                    '<input type="url" name="myanimelist_link" style="width: 99%;" />',
                     1
                 );
 				if ($enablenfo_main=='yes') {

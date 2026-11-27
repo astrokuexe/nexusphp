@@ -242,11 +242,12 @@ HTML;
         if ($this->apiPoint != '') {
             $btn = '<div><input type="button" class="btn-get-pt-gen" value="'.$btnText.'"></div>';
         }
+        $noteHtml = $note !== '' ? '<span class="medium">'.$note.'</span>' : '';
         $input = <<<HTML
 <div style="display: flex">
     <div style="display: flex;flex-direction: column;flex-grow: 1">
         <input type="text" name="$name" value="{$value}" data-pt-gen="$name">
-        <span class="medium">{$note}</span>
+        {$noteHtml}
     </div>
     $btn
 </div>

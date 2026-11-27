@@ -14,7 +14,6 @@ $lang_upload = array
 	'row_small_description' => "Original&nbsp;Name",
 	'text_small_description_note' => "(e.g. 学園黙示録 HIGHSCHOOL OF THE DEAD)\n",
 	'row_myanimelist_link' => "MyAnimeList&nbsp;link",
-	'text_myanimelist_link_note' => "(URL taken from <strong><a href=\"https://myanimelist.net\">MyAnimeList</a></strong>. e.g. for anime <b>Naruto Shippuden</b> the URL is <b>https://myanimelist.net/anime/1735/Naruto__Shippuuden</b>)",
 	'row_nfo_file' => "NFO&nbsp;file",
 	'text_only_viewed_by' => "(Can only be viewed by ",
 	'text_or_above' => " or Above. </b> insert only file ending with <b>.nfo</b>)\n",
