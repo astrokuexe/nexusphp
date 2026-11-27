@@ -99,7 +99,8 @@ stdhead($lang_upload['head_upload']);
                 }
                 tr(
                     $lang_upload['row_myanimelist_link'],
-                    '<input type="url" name="myanimelist_link" style="width: 99%;" />',
+                    '<input type="url" name="myanimelist_link" style="width: 99%;" /><br><font class="medium">'
+                    . $lang_upload['text_myanimelist_link_note'] . '</font>',
                     1
                 );
 				if ($enablenfo_main=='yes') {
