@@ -61,7 +61,7 @@ class TorrentExternalMetadataTest extends TestCase
         Http::assertSentCount(3);
     }
 
-    public function testAutomaticallyDetectsSourceFromGenericMetadataLink(): void
+    public function testAutomaticallyDetectsMetadataFromMyAnimeListLinkField(): void
     {
         config([
             'cache.default' => 'array',
@@ -76,7 +76,7 @@ class TorrentExternalMetadataTest extends TestCase
 
         $metadata = app(TorrentExternalMetadata::class)->fetchForTorrent([
             'pt_gen' => json_encode([
-                'external_metadata_url' => 'https://myanimelist.net/anime/5114',
+                'myanimelist_link' => 'https://myanimelist.net/anime/5114',
             ]),
         ]);
 

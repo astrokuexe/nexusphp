@@ -98,9 +98,8 @@ stdhead($lang_upload['head_upload']);
                     echo $ptGen->renderUploadPageFormInput("");
                 }
                 tr(
-                    $lang_upload['row_external_metadata_link'],
-                    '<input type="url" name="external_metadata_url" style="width: 99%;" />'
-                    . '<br><font class="medium">' . $lang_upload['text_external_metadata_link_note'] . '</font>',
+                    $lang_upload['row_myanimelist_link'],
+                    '<input type="url" name="myanimelist_link" style="width: 99%;" />',
                     1
                 );
 				if ($enablenfo_main=='yes') {

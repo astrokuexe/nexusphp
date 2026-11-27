@@ -67,9 +67,9 @@ else {
 	$anon = $CURUSER["username"];
 }
 
-$externalMetadataUrl = $_POST['external_metadata_url'] ?? '';
-if (!is_string($externalMetadataUrl)) {
-	$externalMetadataUrl = '';
+$myAnimeListLink = $_POST['myanimelist_link'] ?? '';
+if (!is_string($myAnimeListLink)) {
+	$myAnimeListLink = '';
 }
 
 $url = parse_imdb_id($_POST['url'] ?? '');
@@ -77,18 +77,18 @@ $ptGen = $_POST['pt_gen'] ?? '';
 if (!is_string($ptGen)) {
 	$ptGen = '';
 }
-if (trim($externalMetadataUrl) !== '') {
-	$externalMetadataUrl = trim($externalMetadataUrl);
-	$parsedExternalMetadataUrl = filter_var($externalMetadataUrl, FILTER_VALIDATE_URL);
-	$externalMetadataScheme = strtolower((string) parse_url($externalMetadataUrl, PHP_URL_SCHEME));
-	if ($parsedExternalMetadataUrl === false || !in_array($externalMetadataScheme, ['http', 'https'], true)) {
-		bark('Please enter a valid HTTP or HTTPS metadata link.');
+if (trim($myAnimeListLink) !== '') {
+	$myAnimeListLink = trim($myAnimeListLink);
+	$parsedMyAnimeListLink = filter_var($myAnimeListLink, FILTER_VALIDATE_URL);
+	$myAnimeListLinkScheme = strtolower((string) parse_url($myAnimeListLink, PHP_URL_SCHEME));
+	if ($parsedMyAnimeListLink === false || !in_array($myAnimeListLinkScheme, ['http', 'https'], true)) {
+		bark('Please enter a valid HTTP or HTTPS MyAnimeList link.');
 	}
 	$ptGenData = json_decode($ptGen, true);
 	if (!is_array($ptGenData)) {
 		$ptGenData = $ptGen !== '' ? ['__link' => $ptGen] : [];
 	}
-	$ptGenData['external_metadata_url'] = $externalMetadataUrl;
+	$ptGenData['myanimelist_link'] = $myAnimeListLink;
 	$ptGen = nexus_json_encode($ptGenData);
 }
 
