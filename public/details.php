@@ -130,8 +130,33 @@ if (!$row) {
 		}
 		else
 			tr($lang_details['row_download'], $lang_details['text_downloading_not_allowed']);
+        tr($lang_details['row_english_name'] ?? 'English Name', htmlspecialchars($row['name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), true);
 		if ($smalldescription_main == 'yes')
-			tr($lang_details['row_small_description'],htmlspecialchars(trim($row["small_descr"])),true);
+			tr($lang_details['row_original_name'] ?? 'Original Name', htmlspecialchars(trim($row["small_descr"]), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), true);
+        if ($imdb_id) {
+            $imdbUrl = 'https://www.imdb.com/title/tt' . rawurlencode($imdb_id) . '/';
+            tr(
+                $lang_details['row_imdb_url'],
+                '<a href="' . htmlspecialchars($imdbUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '" target="_blank" rel="noopener noreferrer">'
+                . htmlspecialchars($imdbUrl, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</a>',
+                true
+            );
+        }
+        $ptGenData = json_decode((string)($row['pt_gen'] ?? ''), true);
+        $myAnimeListLink = is_array($ptGenData)
+            ? ($ptGenData['myanimelist_link'] ?? $ptGenData['external_metadata_url'] ?? '')
+            : '';
+        $myAnimeListHost = is_string($myAnimeListLink) ? strtolower((string)parse_url($myAnimeListLink, PHP_URL_HOST)) : '';
+        if (is_string($myAnimeListLink) && filter_var($myAnimeListLink, FILTER_VALIDATE_URL)
+            && in_array($myAnimeListHost, ['myanimelist.net', 'www.myanimelist.net'], true)) {
+            $escapedMyAnimeListLink = htmlspecialchars($myAnimeListLink, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+            tr(
+                $lang_details['row_myanimelist_link'] ?? 'MyAnimeList link',
+                '<a href="' . $escapedMyAnimeListLink . '" target="_blank" rel="noopener noreferrer">'
+                . $escapedMyAnimeListLink . '</a>',
+                true
+            );
+        }
 
 		//tag
         $torrentTags = \App\Models\TorrentTag::query()->where('torrent_id', $row['id'])->get();
@@ -217,19 +242,6 @@ if (!$row) {
         }
 
 		$actions = [];
-        if ($CURUSER["downloadpos"] != "no") {
-            $hasBuy = \App\Models\TorrentBuyLog::query()->where('uid', $CURUSER['id'])->where('torrent_id', $id)->exists();
-            if ($row['price'] > 0) {
-                if ($hasBuy) {
-                    $downloadBtn = $lang_details['text_download_bought_torrent'];
-                } else {
-                    $downloadBtn = sprintf($lang_details['text_download_paid_torrent'], number_format($row['price']));
-                }
-            } else {
-                $downloadBtn = $lang_details['text_download_torrent'];
-            }
-            $actions[] = "<a title=\"".$lang_details['title_download_torrent']."\" href=\"download.php?id=".$id."\"><img class=\"dt_download\" src=\"pic/trans.gif\" alt=\"download\" />&nbsp;<b><font class=\"small\">".$downloadBtn."</font></b></a>";
-        }
         if ($owned == 1) {
             $actions[] = "<$editlink><img class=\"dt_edit\" src=\"pic/trans.gif\" alt=\"edit\" />&nbsp;<b><font class=\"small\">".(user_can('torrentmanage') ? $lang_details['text_edit_and_delete_torrent'] : $lang_details['text_edit_torrent']). "</font></b></a>";
         }
@@ -298,8 +310,6 @@ JS;
         }
         // ------------- end claim block ------------------//
 
-        tr($lang_details['torrent_dl_url'],sprintf('<a title="%s" href="%s">%s</a>',$lang_details['torrent_dl_url_notice'], $torrentRep->getDownloadUrl($id, $CURUSER), $lang_details['torrent_dl_url_text']),1);
-
 		// ---------------- start subtitle block -------------------//
         $subTorrentIdArr = [$row['id']];
         $otherCopiesIdArr = [];
@@ -355,11 +365,17 @@ JS;
 
         /**************end custom fields****************/
 
+		if ($CURUSER['showdescription'] != 'no' && !empty($row["descr"])){
+            $torrentdetailad=$Advertisement->get_ad('torrentdetail');
+            $desc = format_comment($row['descr']);
+            $desc = apply_filter('torrent_detail_description', $desc, $row['id'], $CURUSER['id']);
+            tr("<a href=\"javascript: klappe_news('descr')\"><span class=\"nowrap\"><img class=\"minus\" src=\"pic/trans.gif\" alt=\"Show/Hide\" id=\"picdescr\" title=\"".($lang_details['title_show_or_hide'] ?? '')."\" /> ".$lang_details['row_description']."</span></a>", "<div id='kdescr'>".($Advertisement->enable_ad() && $torrentdetailad ? "<div align=\"left\" style=\"margin-bottom: 10px\" id=\"\">".$torrentdetailad[0]."</div>" : "").$desc."</div>", 1);
+		}
+
         //technical info
         if ($settingMain['enable_technical_info'] == 'yes') {
             $technicalData = nexus_escape($row['technical_info'] ?? '');
 
-            // 判断是否为BDINFO格式
             $isBdInfo = false;
             if (!empty($technicalData)) {
                 $firstLine = strtok($technicalData, "\n");
@@ -372,10 +388,8 @@ JS;
             }
 
             if ($isBdInfo) {
-                // 使用BdInfoExtra处理BDINFO格式
                 $technicalInfo = new \Nexus\Torrent\BdInfoExtra($technicalData);
             } else {
-                // 使用TechnicalInformation处理MediaInfo格式
                 $technicalInfo = new \Nexus\Torrent\TechnicalInformation($technicalData);
             }
 
@@ -384,13 +398,6 @@ JS;
                 tr($lang_functions['text_technical_info'], $technicalInfoResult, 1);
             }
         }
-
-		if ($CURUSER['showdescription'] != 'no' && !empty($row["descr"])){
-            $torrentdetailad=$Advertisement->get_ad('torrentdetail');
-            $desc = format_comment($row['descr']);
-            $desc = apply_filter('torrent_detail_description', $desc, $row['id'], $CURUSER['id']);
-            tr("<a href=\"javascript: klappe_news('descr')\"><span class=\"nowrap\"><img class=\"minus\" src=\"pic/trans.gif\" alt=\"Show/Hide\" id=\"picdescr\" title=\"".($lang_details['title_show_or_hide'] ?? '')."\" /> ".$lang_details['row_description']."</span></a>", "<div id='kdescr'>".($Advertisement->enable_ad() && $torrentdetailad ? "<div align=\"left\" style=\"margin-bottom: 10px\" id=\"\">".$torrentdetailad[0]."</div>" : "").$desc."</div>", 1);
-		}
 
 		if (user_can('viewnfo') && $CURUSER['shownfo'] != 'no' && $row["nfosz"] > 0){
 			if (!$nfo = $Cache->get_value('nfo_block_torrent_id_'.$id)){
