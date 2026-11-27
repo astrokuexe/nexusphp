@@ -131,6 +131,15 @@ if (!$row) {
 		else
 			tr($lang_details['row_download'], $lang_details['text_downloading_not_allowed']);
         tr($lang_details['row_english_name'] ?? 'English Name', htmlspecialchars($row['name'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), true);
+        $ptGenData = json_decode((string)($row['pt_gen'] ?? ''), true);
+        $synonymsName = is_array($ptGenData) ? trim((string)($ptGenData['synonyms_name'] ?? '')) : '';
+        if ($synonymsName !== '') {
+            tr(
+                $lang_details['row_synonyms_name'] ?? 'Synonyms Name',
+                htmlspecialchars($synonymsName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'),
+                true
+            );
+        }
 		if ($smalldescription_main == 'yes')
 			tr($lang_details['row_original_name'] ?? 'Original Name', htmlspecialchars(trim($row["small_descr"]), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8'), true);
         if ($imdb_id) {
@@ -144,7 +153,6 @@ if (!$row) {
                 true
             );
         }
-        $ptGenData = json_decode((string)($row['pt_gen'] ?? ''), true);
         $myAnimeListLink = is_array($ptGenData)
             ? ($ptGenData['myanimelist_link'] ?? $ptGenData['external_metadata_url'] ?? '')
             : '';

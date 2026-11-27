@@ -11,6 +11,7 @@ $lang_upload = array
 	'row_torrent_file' => "Torrent&nbsp;file",
 	'row_torrent_name' => "English&nbsp;Name",
 	'text_torrent_name_note' => "(Taken from filename if not specified. <b>Please use descriptive names.</b> e.g. Blade Runner 1982 Final Cut 720p HDDVD DTS x264-ESiR)\n",
+	'row_synonyms_name' => "Synonyms&nbsp;Name",
 	'row_small_description' => "Original&nbsp;Name",
 	'text_small_description_note' => "(e.g. 学園黙示録 HIGHSCHOOL OF THE DEAD)\n",
 	'row_myanimelist_link' => "MyAnimeList&nbsp;link",

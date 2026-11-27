@@ -89,6 +89,11 @@ stdhead($lang_upload['head_upload']);
 				    $nameInput = $torrentRep->buildUploadFieldInput("name", "", $lang_upload['text_torrent_name_note'], $autoFillText);
                     tr($lang_upload['row_torrent_name'], $nameInput, 1);
                 }
+                tr(
+                    $lang_upload['row_synonyms_name'] ?? 'Synonyms Name',
+                    '<input type="text" name="synonyms_name" style="width: 99%;" />',
+                    1
+                );
 
 				if ($smalldescription_main == 'yes')
 				tr($lang_upload['row_small_description'], "<input type=\"text\" style=\"width: 99%;\" name=\"small_descr\" /><br /><font class=\"medium\">".$lang_upload['text_small_description_note']."</font>", 1);

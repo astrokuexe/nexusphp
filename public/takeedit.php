@@ -48,18 +48,34 @@ $url = parse_imdb_id($_POST['url'] ?? '');
  * @since 1.6
  *
  */
-if (!empty($_POST['pt_gen'])) {
-    $postPtGen = $_POST['pt_gen'];
-    $existsPtGenInfo = json_decode($row['pt_gen'], true) ?? [];
-    $ptGen = new \Nexus\PTGen\PTGen();
-    if ($postPtGen != $ptGen->getLink($existsPtGenInfo)) {
-//        $updateset[] = "pt_gen = " . sqlesc($postPtGen);
-        $extraUpdate["pt_gen"] = $postPtGen;
-    }
-} else {
-//    $updateset[] = "pt_gen = ''";
-    $extraUpdate["pt_gen"] = "";
+$hasPtGenInput = array_key_exists('pt_gen', $_POST) && is_string($_POST['pt_gen']);
+$postPtGen = $hasPtGenInput ? $_POST['pt_gen'] : '';
+$existingPtGenInfo = $torrentOld->extra?->pt_gen ?? [];
+if (is_string($existingPtGenInfo)) {
+    $decodedPtGenInfo = json_decode($existingPtGenInfo, true);
+    $existingPtGenInfo = is_array($decodedPtGenInfo)
+        ? $decodedPtGenInfo
+        : ($existingPtGenInfo !== '' ? ['__link' => $existingPtGenInfo] : []);
 }
+$ptGenData = is_array($existingPtGenInfo) ? $existingPtGenInfo : [];
+if ($hasPtGenInput) {
+    if (trim($postPtGen) !== '') {
+        $ptGenData['__link'] = trim($postPtGen);
+    } else {
+        unset($ptGenData['__link']);
+    }
+}
+$synonymsName = $_POST['synonyms_name'] ?? '';
+if (!is_string($synonymsName)) {
+    $synonymsName = '';
+}
+$synonymsName = trim(unesc($synonymsName));
+if ($synonymsName !== '') {
+    $ptGenData['synonyms_name'] = $synonymsName;
+} else {
+    unset($ptGenData['synonyms_name']);
+}
+$extraUpdate['pt_gen'] = $ptGenData !== [] ? $ptGenData : '';
 
 //$updateset[] = "technical_info = " . sqlesc($_POST['technical_info'] ?? '');
 $extraUpdate["media_info"] = $_POST['technical_info'] ?? '';

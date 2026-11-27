@@ -222,7 +222,7 @@ HTML;
     public function renderUploadPageFormInput($ptGen = ''): string
     {
         $arr = json_decode($ptGen, true);
-        $link = is_array($arr) ? $arr['__link'] : $ptGen;
+        $link = is_array($arr) ? ($arr['__link'] ?? $this->getLink($arr)) : $ptGen;
         $y = $this->buildInput("pt_gen", $link, nexus_trans('ptgen.tooltip', ['sites' => $this->buildTooltip()]), nexus_trans('ptgen.btn_get_desc'));
         return tr(nexus_trans('ptgen.label'), $y, 1, '', true);
     }
@@ -614,7 +614,7 @@ HTML;
         }
         $result = '';
         foreach ($ptGenInfo as $item) {
-            if (!empty($item['link'])) {
+            if (is_array($item) && !empty($item['link'])) {
                 //old, use the last one
                 $result = $item['link'];
             }

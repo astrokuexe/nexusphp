@@ -71,24 +71,38 @@ $myAnimeListLink = $_POST['myanimelist_link'] ?? '';
 if (!is_string($myAnimeListLink)) {
 	$myAnimeListLink = '';
 }
+$synonymsName = $_POST['synonyms_name'] ?? '';
+if (!is_string($synonymsName)) {
+	$synonymsName = '';
+}
 
 $url = parse_imdb_id($_POST['url'] ?? '');
 $ptGen = $_POST['pt_gen'] ?? '';
 if (!is_string($ptGen)) {
 	$ptGen = '';
 }
-if (trim($myAnimeListLink) !== '') {
+if (trim($myAnimeListLink) !== '' || trim($synonymsName) !== '') {
 	$myAnimeListLink = trim($myAnimeListLink);
+	$synonymsName = trim(unesc($synonymsName));
+}
+if ($myAnimeListLink !== '') {
 	$parsedMyAnimeListLink = filter_var($myAnimeListLink, FILTER_VALIDATE_URL);
 	$myAnimeListLinkScheme = strtolower((string) parse_url($myAnimeListLink, PHP_URL_SCHEME));
 	if ($parsedMyAnimeListLink === false || !in_array($myAnimeListLinkScheme, ['http', 'https'], true)) {
 		bark('Please enter a valid HTTP or HTTPS MyAnimeList link.');
 	}
+}
+if ($myAnimeListLink !== '' || $synonymsName !== '') {
 	$ptGenData = json_decode($ptGen, true);
 	if (!is_array($ptGenData)) {
 		$ptGenData = $ptGen !== '' ? ['__link' => $ptGen] : [];
 	}
-	$ptGenData['myanimelist_link'] = $myAnimeListLink;
+	if ($myAnimeListLink !== '') {
+		$ptGenData['myanimelist_link'] = $myAnimeListLink;
+	}
+	if ($synonymsName !== '') {
+		$ptGenData['synonyms_name'] = $synonymsName;
+	}
 	$ptGen = nexus_json_encode($ptGenData);
 }
 

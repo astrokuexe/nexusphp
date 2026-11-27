@@ -60,6 +60,14 @@ else {
 	print("<table border=\"1\" cellspacing=\"0\" cellpadding=\"5\" width=\"97%\">\n");
 	print("<tr><td class='colhead' colspan='2' align='center'>".htmlspecialchars($row["name"])."</td></tr>");
 	tr($lang_edit['row_torrent_name']."<font color=\"red\">*</font>", "<input type=\"text\" style=\"width: 99%;\" name=\"name\" value=\"" . htmlspecialchars($row["name"]) . "\" />", 1);
+    $ptGenData = json_decode((string)($row['pt_gen'] ?? ''), true);
+    $synonymsName = is_array($ptGenData) ? (string)($ptGenData['synonyms_name'] ?? '') : '';
+    tr(
+        $lang_edit['row_synonyms_name'] ?? 'Synonyms Name',
+        '<input type="text" name="synonyms_name" style="width: 99%;" value="'
+        . htmlspecialchars($synonymsName, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '" />',
+        1
+    );
 	if ($smalldescription_main == 'yes')
 		tr($lang_edit['row_small_description'], "<input type=\"text\" style=\"width: 99%;\" name=\"small_descr\" value=\"" . htmlspecialchars($row["small_descr"]) . "\" />", 1);
 

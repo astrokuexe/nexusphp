@@ -19,6 +19,7 @@ $lang_details = array
 	'row_download' => "Download",
 	'text_downloading_not_allowed' => "You are not allowed to download.",
 	'row_english_name' => "English Name",
+	'row_synonyms_name' => "Synonyms Name",
 	'row_original_name' => "Original Name",
 	'row_info_hash' => "Info hash",
 	'row_description' => "Description",
