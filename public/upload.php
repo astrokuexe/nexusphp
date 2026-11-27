@@ -97,31 +97,12 @@ stdhead($lang_upload['head_upload']);
                     $ptGen = new \Nexus\PTGen\PTGen();
                     echo $ptGen->renderUploadPageFormInput("");
                 }
-                $scraperSources = [
-                    'imdb' => 'IMDB',
-                    'myanimelist' => 'MyAnimeList',
-                    'anidb' => 'AniDB',
-                    'lost_media_wiki' => 'The LostMediaWiki',
-                ];
-                $scraperSourceOptions = [];
-                foreach ($scraperSources as $source => $sourceName) {
-                    $scraperSourceOptions[] = sprintf(
-                        '<label><input type="checkbox" name="scraper_import_sources[]" value="%s" /> %s</label>',
-                        htmlspecialchars($source, ENT_QUOTES, 'UTF-8'),
-                        htmlspecialchars($sourceName, ENT_QUOTES, 'UTF-8')
-                    );
-                }
-                tr('Scrapper Import', implode('&nbsp;&nbsp;', $scraperSourceOptions), 1);
-                foreach ($scraperSources as $source => $sourceName) {
-                    tr(
-                        $sourceName . ' link',
-                        sprintf(
-                            '<input type="url" name="scraper_import[%s]" style="width: 99%%;" />',
-                            htmlspecialchars($source, ENT_QUOTES, 'UTF-8')
-                        ),
-                        1
-                    );
-                }
+                tr(
+                    $lang_upload['row_external_metadata_link'],
+                    '<input type="url" name="external_metadata_url" style="width: 99%;" />'
+                    . '<br><font class="medium">' . $lang_upload['text_external_metadata_link_note'] . '</font>',
+                    1
+                );
 				if ($enablenfo_main=='yes') {
                     tr($lang_upload['row_nfo_file'], "<input type=\"file\" class=\"file\" name=\"nfo\" /><br /><font class=\"medium\">".$lang_upload['text_only_viewed_by'].get_user_class_name($viewnfo_class,false,true,true).$lang_upload['text_or_above']."</font>", 1);
                 }

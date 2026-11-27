@@ -61,6 +61,29 @@ class TorrentExternalMetadataTest extends TestCase
         Http::assertSentCount(3);
     }
 
+    public function testAutomaticallyDetectsSourceFromGenericMetadataLink(): void
+    {
+        config([
+            'cache.default' => 'array',
+            'services.myanimelist.client_id' => 'test-client-id',
+        ]);
+        Http::fake([
+            'api.myanimelist.net/v2/anime/5114*' => Http::response([
+                'id' => 5114,
+                'title' => 'Fullmetal Alchemist: Brotherhood',
+            ]),
+        ]);
+
+        $metadata = app(TorrentExternalMetadata::class)->fetchForTorrent([
+            'pt_gen' => json_encode([
+                'external_metadata_url' => 'https://myanimelist.net/anime/5114',
+            ]),
+        ]);
+
+        $this->assertSame('Fullmetal Alchemist: Brotherhood', $metadata['myanimelist'][0]['title']);
+        Http::assertSentCount(1);
+    }
+
     public function testDoesNotSearchUsingTorrentTitleOrFetchWithoutReferences(): void
     {
         config([

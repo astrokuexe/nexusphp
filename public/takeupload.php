@@ -67,32 +67,28 @@ else {
 	$anon = $CURUSER["username"];
 }
 
-$scraperSources = ['imdb', 'myanimelist', 'anidb', 'lost_media_wiki'];
-$selectedScraperSources = $_POST['scraper_import_sources'] ?? [];
-$scraperImportLinks = [];
-if (is_array($selectedScraperSources) && is_array($_POST['scraper_import'] ?? null)) {
-	foreach ($scraperSources as $source) {
-		$link = $_POST['scraper_import'][$source] ?? '';
-		if (in_array($source, $selectedScraperSources, true) && is_string($link) && trim($link) !== '') {
-			$scraperImportLinks[$source] = trim($link);
-		}
-	}
+$externalMetadataUrl = $_POST['external_metadata_url'] ?? '';
+if (!is_string($externalMetadataUrl)) {
+	$externalMetadataUrl = '';
 }
 
 $url = parse_imdb_id($_POST['url'] ?? '');
-if (!$url && isset($scraperImportLinks['imdb'])) {
-	$url = parse_imdb_id($scraperImportLinks['imdb']);
-}
 $ptGen = $_POST['pt_gen'] ?? '';
 if (!is_string($ptGen)) {
 	$ptGen = '';
 }
-if ($scraperImportLinks) {
+if (trim($externalMetadataUrl) !== '') {
+	$externalMetadataUrl = trim($externalMetadataUrl);
+	$parsedExternalMetadataUrl = filter_var($externalMetadataUrl, FILTER_VALIDATE_URL);
+	$externalMetadataScheme = strtolower((string) parse_url($externalMetadataUrl, PHP_URL_SCHEME));
+	if ($parsedExternalMetadataUrl === false || !in_array($externalMetadataScheme, ['http', 'https'], true)) {
+		bark('Please enter a valid HTTP or HTTPS metadata link.');
+	}
 	$ptGenData = json_decode($ptGen, true);
 	if (!is_array($ptGenData)) {
 		$ptGenData = $ptGen !== '' ? ['__link' => $ptGen] : [];
 	}
-	$ptGenData['scraper_import'] = $scraperImportLinks;
+	$ptGenData['external_metadata_url'] = $externalMetadataUrl;
 	$ptGen = nexus_json_encode($ptGenData);
 }
 
