@@ -1331,7 +1331,8 @@ if ($allTags->isNotEmpty()) {
 	}
 if ($enableextforum != 'yes') {
     $class = get_user_class();
-    $canManageStandaloneForums = user_can('forummanage');
+    $canManageStandaloneForums = user_can('forummanage')
+        && $class >= \App\Models\User::CLASS_MODERATOR;
     $forumMenuSql = "SELECT g.id AS group_id, g.name AS group_name, f.id AS forum_id, "
         . "f.name AS forum_name, f.description, f.minclasswrite, f.minclasscreate "
         . "FROM standalone_forum_groups AS g "
@@ -1391,6 +1392,10 @@ if ($enableextforum != 'yes') {
             }
 
             echo '<table class="main" width="100%" cellspacing="0" cellpadding="5">';
+            echo '<tr><td class="colhead" align="center"><a href="javascript: klappe_news(\'communityforums\')">'
+                . '<img class="minus" src="pic/trans.gif" id="piccommunityforums" alt="Show/Hide" />'
+                . 'Forum List</a></td></tr>';
+            echo '<tbody id="kcommunityforums">';
             foreach ($forumMenuGroups as $group) {
                 echo '<tr><td class="colhead">' . htmlspecialchars($group['name'], ENT_QUOTES, 'UTF-8') . '</td></tr>';
                 foreach ($group['forums'] as $forum) {
@@ -1428,6 +1433,7 @@ if ($enableextforum != 'yes') {
                     echo '</table></td></tr>';
                 }
             }
+            echo '</tbody>';
             echo '</table>';
         }
         if ($canManageStandaloneForums) {

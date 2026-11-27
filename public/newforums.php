@@ -57,8 +57,9 @@ $redirect = static function (string $url): void {
     header('Location: ' . $url);
     exit;
 };
-$canManage = user_can('forummanage');
 $userClass = get_user_class();
+$canManage = user_can('forummanage')
+    && $userClass >= \App\Models\User::CLASS_MODERATOR;
 $canPost = ($CURUSER['forumpost'] ?? 'no') === 'yes';
 $csrfToken = nexus_csrf_token('standalone_forum', (string) $CURUSER['id']);
 
