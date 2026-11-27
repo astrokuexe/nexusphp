@@ -1235,11 +1235,11 @@ function insert_suggest($keyword, $userid, $pre_escaped = true)
 	}
 }
 
-function get_external_tr($imdb_url = "")
+function get_external_tr($imdb_url = "", $force = false)
 {
 	global $lang_functions;
 	global $showextinfo;
-	if ($showextinfo['imdb'] != 'yes') {
+	if (!$force && $showextinfo['imdb'] != 'yes') {
 	    return '';
     }
 	$ptGen = new Nexus\PTGen\PTGen();
